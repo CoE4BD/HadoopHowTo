@@ -35,10 +35,10 @@ Shuo Yang 9/17/2013
 ![Import](images/2.jpg)
 You can now add source file to SEIS736->src/main/java->edu.stthomas.edu and all the Hadoop references should resolve. ### Add javadoc for Hadoop*Note: This manual step is currently necessary because Cloudera is missing the Javadoc JAR for hadoop-core.*Go to File->Properties, select M2_REPO/org/apache/hadoop/hadoop-core/2.0.0-mr1-cdh4.4.0/hadoop-core-2.0.0-mr1-cdh4.4.0.jar
 ![Build Path](images/3.jpg)Double click Javadoc location
-![Javadoc Location](images/3.jpg)
+![Javadoc Location](images/4.jpg)
 Enter http://archive.cloudera.com/cdh4/cdh/4/hadoop/api/ into Javadoc location path, then click OK.
 ### Compile the projectUnder your project directory SEIS736, enter the following command
 `$ mvn package`
 Then in Eclipse, right click SEIS736 and select Refresh. Then you will see a jar file called  SEIS736-1.0.jar generated under target directory.### Upload jar file to the serverUnder SEIS736, create a shell script called upload.sh with the following two lines of code
-	#!/bin/sh	scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \ username@hc.gps.stthomas.edu:/home/username/
-	*Note: the backslash here means the same thing as we have mentioned in step 3.*Then enter the following command`$ mvn install`
+	#!/bin/sh	scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \	username@hc.gps.stthomas.edu:/home/username/Then enter the following command
+`$ mvn install`

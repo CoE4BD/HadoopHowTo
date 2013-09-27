@@ -433,7 +433,7 @@ File->Import->Existing Projects Into Workspace</p>
 
 <p>Double click Javadoc location</p>
 
-<p><img src="images/3.jpg" alt="Javadoc Location" /></p>
+<p><img src="images/4.jpg" alt="Javadoc Location" /></p>
 
 <p>Enter http://archive.cloudera.com/cdh4/cdh/4/hadoop/api/ into Javadoc location path, then click OK.</p>
 
@@ -452,13 +452,13 @@ $ mvn package
 <p>Under SEIS736, create a shell script called upload.sh with the following two lines of code</p>
 
 <pre><code>#!/bin/sh
-scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \ username@hc.gps.stthomas.edu:/home/username/
+scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \
+username@hc.gps.stthomas.edu:/home/username/
 </code></pre>
 
-<p><em>Note: the backslash here means the same thing as we have mentioned in step 3.</em></p>
+<p>Then enter the following command</p>
 
-<p>Then enter the following command
-<code>
+<p><code>
 $ mvn install
 </code></p>
 </body>
