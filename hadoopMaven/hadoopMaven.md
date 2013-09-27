@@ -24,7 +24,7 @@ Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 	$ mvn -Declipse.workspace=/home/username/workspace \
 	eclipse:configure-workspace eclipse:eclipse
 *Note: remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with this one
-[pom.xml](https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopmaven/pom.xml)
+[pom.xml](https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopMaven/pom.xml)
 `$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variableGo to your home directory
 `$ cd ~`
 Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.
