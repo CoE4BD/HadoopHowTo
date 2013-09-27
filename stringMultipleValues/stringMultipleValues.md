@@ -2,13 +2,13 @@
 
 Bradley S. Rubin, PhD 9/27/2013
 
-### This document shows how to use a string to pass multiple values between mapper and reducer, and from the reducer to output
+### This part shows how to use a string to pass multiple values between mapper and reducer, and from the reducer to output
 ---
 One of the first questions people have when learning the key/value pair model used in Hadoop is "How do I handle multiple values?"  This is the first of a 4-part series that will illustrate four techniques: String, Custom Writable, Map, and AVRO.
 
 In the code for this part, we turn the values into strings and concatenate them together with comma separators to make a single string, and pass it in a Text object from mapper to reducer.  In the reducer, we can parse these multiple values and turn them back into their original types. We again do string concatenation to pass a single Text object to HDFS, but this time we use tab separators.  Since there is already a default tab separation convention between keys and values in the TextOutputFormat, using tabs in the values will make it easier for a subsequent Hive/Pig job to read both the keys and values and parse them, potentially also turning them into their original types.
 
-## The mapper
+## The Mapper
 
 	package edu.stthomas.gps.multiplevalues;
 

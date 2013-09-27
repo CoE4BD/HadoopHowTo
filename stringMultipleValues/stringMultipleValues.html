@@ -310,7 +310,7 @@ sup {
 
 <p>Bradley S. Rubin, PhD 9/27/2013</p>
 
-<h3>This document shows how to use a string to pass multiple values between mapper and reducer, and from the reducer to output</h3>
+<h3>This part shows how to use a string to pass multiple values between mapper and reducer, and from the reducer to output</h3>
 
 <hr />
 
@@ -318,7 +318,7 @@ sup {
 
 <p>In the code for this part, we turn the values into strings and concatenate them together with comma separators to make a single string, and pass it in a Text object from mapper to reducer.  In the reducer, we can parse these multiple values and turn them back into their original types. We again do string concatenation to pass a single Text object to HDFS, but this time we use tab separators.  Since there is already a default tab separation convention between keys and values in the TextOutputFormat, using tabs in the values will make it easier for a subsequent Hive/Pig job to read both the keys and values and parse them, potentially also turning them into their original types.</p>
 
-<h2>The mapper</h2>
+<h2>The Mapper</h2>
 
 <pre><code>package edu.stthomas.gps.multiplevalues;
 
