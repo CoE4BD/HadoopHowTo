@@ -6,6 +6,8 @@ Shuo Yang 9/17/2013
 
 ### Using the software lifecycle and build tool Maven, you can configure Eclipse for Hadoop development in minutes.
 ---
+*Note: This document assumes a package name of edu.stthomas.gps and a project name of SEIS736, so change these to meet your requirements*
+
 ### Install MavenFirst, open a shell terminal and check if Maven version 3 is already installed. 
 `$ mvn -v`
 *Note for Mac Users: If you install XCode, Maven 3 should be installed for you*
@@ -21,8 +23,9 @@ Shuo Yang 9/17/2013
 Enter the following command (make sure you have access to the Internet):
 	$ mvn -Declipse.workspace=/home/username/workspace \
 	eclipse:configure-workspace eclipse:eclipse
-*Note: remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with the one at the bottom of this document and enter this command (make sure you have access to the Internet)
-`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variableGo to your home directory
+*Note: remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with this one
+[pom.xml](https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopmaven/pom.xml)
+`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variableGo to your home directory
 `$ cd ~`
 Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.
 `export M2_REPO=$HOME/.m2/repository`
