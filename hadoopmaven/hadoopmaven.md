@@ -2,7 +2,7 @@
 
 For Ubuntu and Mac Users
 
-Shuo Yang, Brad Rubin 9/17/2013
+Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 
 ### Using the software lifecycle and build tool Maven, you can configure Eclipse for Hadoop development in minutes.
 ---
