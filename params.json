@@ -1,1 +1,1 @@
-{"name":"Hadoop How To","tagline":"Short, targeted, guides to all things Hadoop","body":"## Using Maven to Setup an Eclipse Hadoop Development Environment\r\n<a href=\"hadoopmaven.html\">Hadoop Maven</a>","google":"","note":"Don't delete this file! It's used internally to help with page regeneration."}
+{"name":"Hadoop How To","tagline":"Short, targeted, guides to all things Hadoop","body":"[Setup Eclipse for Hadoop Development Using Maven](hadoopmaven.html)","google":"","note":"Don't delete this file! It's used internally to help with page regeneration."}
