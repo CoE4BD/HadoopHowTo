@@ -77,7 +77,7 @@ $ cd ~/workspace</p>
 <pre><code>$ mvn archetype:generate -DgroupId=edu.stthomas.gps -DartifactId=SEIS736 \ -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 </code></pre>
 
-<p><em>(**Note:** The backslash at the end of the first line means the command is not completed, we often use it for a long command, so if you want to enter the command on two lines, use it. But if you type the command on one line, you should not type backslash.)</em></p>
+<p><em>(Note: The backslash at the end of the first line means the command is not completed, we often use it for a long command, so if you want to enter the command on two lines, use it. But if you type the command on one line, you should not type backslash.)</em></p>
 
 <p>After it is done, there will be a directory called SEIS736 created under the current directory. Go into this directory:</p>
 
@@ -89,7 +89,7 @@ $ cd ~/workspace</p>
 <pre><code>$ mvn -Declipse.workspace=/home/username/workspace eclipse:configure-workspace \ eclipse:eclipse
 </code></pre>
 
-<p><em>(**Note:** remember to replace 'username' with your real user name)</em></p>
+<p><em>(Note: remember to replace 'username' with your real user name)</em></p>
 
 <p>Replace the pom.xml file (under SEIS736) with the one at the bottom of this document and enter this command (make sure you have access to the Internet):</p>
 
@@ -122,6 +122,22 @@ $ cd ~/workspace</p>
 <pre><code>File-&gt;Import-&gt;Existing Projects Into Workspace
 </code></pre>
 <img src="images/1.jpg" alt="some_text">
+<p>Choose SEIS736 and import it into Eclipse:</p>
+<img src="images/2.jpg" alt="some_text">
+<p>You can now add your source files to SEIS736->src/main/java->edu.stthomas.edu and all the Hadoop references should resolve.</p>
+###Add javadoc for Hadoop
+<p><em>(Note: This manual step is currently necessary because Cloudera is missing the Javadoc JAR for hadoop-core.)</em></p>
+<p>Go to File->Properties, select M2_REPO/org/apache/hadoop/hadoop-core/2.0.0-mr1-cdh4.4.0/hadoop-core-2.0.0-mr1-cdh4.4.0.jar</p>
+<p>
+<img src="images/3.jpg" alt="some_text">Double click Javadoc location:</p>
+<img src="images/4.jpg" alt="some_text">
+<p>Enter http://archive.cloudera.com/cdh4/cdh/4/hadoop/api/ into Javadoc location path, then click OK.</p>
+###Compile the projectUnder your project directory SEIS736, enter the following command:
+```$ mvn package```Then in Eclipse, right click SEIS736 and select Refresh. Then you will see a jar file called  SEIS736-1.0.jar generated under target directory.###Upload jar file to the serverUnder SEIS736, create a shell script called upload.sh with the following two lines of code:
+```#!/bin/shscp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \ username@hc.gps.stthomas.edu:/home/username/
+```*(Note: the backslash here means the same thing as we have mentioned previously.)*Then enter the following command:
+```$ mvn install
+```
       </section>
     </div>
 
