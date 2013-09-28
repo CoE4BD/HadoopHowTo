@@ -23,9 +23,10 @@ Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 Enter the following command (make sure you have access to the Internet):
 	$ mvn -Declipse.workspace=/home/username/workspace \
 	eclipse:configure-workspace eclipse:eclipse
-*Note: remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with this one
+*Note: Remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with this one
 [pom.xml](https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopMaven/pom.xml)
-`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variableGo to your home directory
+`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variable*Note: This step is not needed on a Mac.*
+Go to your home directory
 `$ cd ~`
 Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.
 `export M2_REPO=$HOME/.m2/repository`
@@ -41,4 +42,5 @@ Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 `$ mvn package`
 Then in Eclipse, right click SEIS736 and select Refresh. Then you will see a jar file called  SEIS736-1.0.jar generated under target directory.### Upload jar file to the serverUnder SEIS736, create a shell script called upload.sh with the following two lines of code
 	#!/bin/sh	scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \	username@hc.gps.stthomas.edu:/home/username/Then enter the following command
-`$ mvn install`
+`$ mvn install`####Reference
+[Developing CDH Applications with Maven and Eclipse](http://blog.cloudera.com/blog/2012/08/developing-cdh-applications-with-maven-and-eclipse/)

@@ -302,170 +302,252 @@ sup {
 	}
 }
 </style>
-<title>Setup Eclipse for Hadoop Development Using Maven</title>
+<title>Passing Multiple Values in MapReduce Part 2: Custom Writables</title>
 
 </head>
 <body>
-<h1>Setup Eclipse for Hadoop Development Using Maven</h1>
+<h1>Passing Multiple Values in MapReduce Part 2: Custom Writables</h1>
 
-<p>For Ubuntu and Mac Users</p>
+<p>Bradley S. Rubin, PhD 9/27/2013</p>
 
-<p>Shuo Yang, Bradley S. Rubin, PhD 9/17/2013</p>
-
-<h3>Using the software lifecycle and build tool Maven, you can configure Eclipse for Hadoop development in minutes.</h3>
+<h3>This part shows how to use a custom Writable to pass multiple values between mapper and reducer, and from the reducer to output</h3>
 
 <hr />
 
-<p><em>Note: This document assumes a package name of edu.stthomas.gps and a project name of SEIS736, so change these to meet your requirements</em></p>
+<p>In this 2nd of the 4-part series, I will show how to use a single class, which can contain muliple attributes, to pass multiple values.  This is much more efficient than the previous string-based technique, both in terms of storage size and in development time, also avoiding type conversions.</p>
 
-<h3>Install Maven</h3>
+<p>In the code for this part, we create a separate class that implements the Writable interface and contains, as its attributes, the multiple values and their types.  We then use this writable just like any of the other builtin types.  The toString() method controls how the multiple values appear in the HDFS text file.</p>
 
-<p>First, open a shell terminal and check if Maven version 3 is already installed.</p>
+<p>Two notes:</p>
 
-<p><code>
-$ mvn -v
-</code></p>
+<ol>
+<li>It is important to implement the empty default constructor.</li>
+<li>If you want to use a custom writable in the MRUnit test framework, you must also implement hashCode() and equals() (let Eclipse generate the code for you).</li>
+</ol>
 
-<p><em>Note for Mac Users: If you install XCode, Maven 3 should be installed for you</em></p>
 
-<p>If it is not installed, enter the following command to install (make sure you have access to the Internet)</p>
+<h2>The Custom Writable</h2>
 
-<p><code>
-$ sudo apt-get install maven
-</code></p>
+<pre><code>package edu.stthomas.gps.multiplevalues;
 
-<p>After it is completely done, type in 'mvn -v' again, you might see the following information</p>
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
-<pre><code>Apache Maven 3.0.4 
-Maven home: /usr/share/maven 
-Java version: 1.6.0_27, vendor: Sun Microsystems Inc. 
-Java home: /usr/lib/jvm/java-6-openjdk-amd64/jre 
-Default locale: en_US, platform encoding: UTF-8 
-OS name: "linux", version: "3.8.0-30-generic", arch: "amd64", family: "unix" 
+import org.apache.hadoop.io.Writable;
+
+public class MultipleWritable implements Writable {
+
+private int intField;
+private float floatField;
+private String stringField;
+
+public MultipleWritable() {
+}
+
+public MultipleWritable(int i, float f, String s) {
+    intField = i;
+    floatField = f;
+    stringField = s;
+}
+
+public int getIntField() {
+    return intField;
+}
+
+public void setIntField(int intField) {
+    this.intField = intField;
+}
+
+public float getFloatField() {
+    return floatField;
+}
+
+public void setFloatField(float floatField) {
+    this.floatField = floatField;
+}
+
+public String getStringField() {
+    return stringField;
+}
+
+public void setStringField(String stringField) {
+    this.stringField = stringField;
+}
+
+public void readFields(DataInput in) throws IOException {
+    intField = in.readInt();
+    floatField = in.readFloat();
+    stringField = in.readUTF();
+}
+
+public void write(DataOutput out) throws IOException {
+    out.writeInt(intField);
+    out.writeFloat(floatField);
+    out.writeUTF(stringField);
+}
+
+@Override
+public String toString() {
+    return intField + "\t" + floatField + "\t" + stringField;
+}
+
+@Override
+public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + intField;
+    result = prime * result + Float.floatToIntBits(floatField);
+    result = prime * result
+            + ((stringField == null) ? 0 : stringField.hashCode());
+    return result;
+}
+
+@Override
+public boolean equals(Object obj) {
+    if (this == obj)
+        return true;
+    if (obj == null)
+        return false;
+    if (getClass() != obj.getClass())
+        return false;
+    MultipleWritable other = (MultipleWritable) obj;
+    if (intField != other.intField)
+        return false;
+    if (Float.floatToIntBits(floatField) != Float
+            .floatToIntBits(other.floatField))
+        return false;
+    if (stringField == null) {
+        if (other.stringField != null)
+            return false;
+    } else if (!stringField.equals(other.stringField))
+        return false;
+    return true;
+}
+}
 </code></pre>
 
-<h3>Install Eclipse</h3>
+<h2>The Mapper</h2>
 
-<p>To install Eclipse, enter the following command (make sure you have access to the Internet)</p>
+<pre><code>package edu.stthomas.gps.multiplevalues;
 
-<p><code>
-$ sudo apt-get install eclipse
-</code></p>
+import java.io.IOException;
 
-<h3>Integrate Maven with Eclipse</h3>
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
 
-<p>Change your working directory to Eclipse's workspace. Assume it is under you home directory.</p>
+/* An example of how to pass multiple values from a     mapper to a reducer in a single custom writable value.
+Input is a comma-separated string, interpreted as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
+Output is Key:string Value: MultipleWritable(integer, float, string), which contains the integer and float doubled
+(i.e. Key:"A" Value: 2 4.0 This is a test).
+*/
 
-<p><code>
-$ cd ~/workspace
-</code></p>
+public class WritableMultipleValuesMapper extends
+    Mapper&lt;LongWritable, Text, Text, MultipleWritable&gt; {
 
-<p>Enter the following command</p>
+Text textKey = new Text();
+MultipleWritable mw = new MultipleWritable();
 
-<pre><code>$ mvn archetype:generate -DgroupId=edu.stthomas.gps -DartifactId=SEIS736 \
--DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+@Override
+public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+
+    String line = value.toString();
+    String[] field = line.split(",");
+    if (field.length == 4) {
+        mw.setIntField(Integer.parseInt(field[1]) * 2);
+        mw.setFloatField(Float.parseFloat(field[2]) * 2);
+        mw.setStringField(field[3]);
+
+        textKey.set(field[0]);
+
+        context.write(textKey, mw);
+    }
+}
+}
 </code></pre>
 
-<p><em>Note: The backslash at the end of the first line means the command is not complete. We often use it for a long command, so if you want to enter the command on two lines, use it. But if you type the command on one line, you should not type backslash.</em></p>
+<h2>The Reducer</h2>
 
-<p>After it is done, there will be a directory called SEIS736 created under the current directory. Go into this directory</p>
+<pre><code>package edu.stthomas.gps.multiplevalues;
 
-<p><code>
-$ cd SEIS736
-</code></p>
+import java.io.IOException;
 
-<p>Enter the following command (make sure you have access to the Internet):</p>
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
 
-<pre><code>$ mvn -Declipse.workspace=/home/username/workspace \
-eclipse:configure-workspace eclipse:eclipse
+/* An example of how to output multiple values from a reducer in a custom writable.
+Input is a Key:string Value:MultipleWritable(integer, float, string)
+(i.e. Key:"A" Value: MultipleWritable(2 4.0 This is a test).  Output is
+Key:string Value:MultipleWritable(integer, float, string) and the value contains
+the integer and float doubled in tab separated format in order to make future Hive/Pig import easier because
+keys and values are also separated by tabs. (i.e. Key:"A" Value: "4\t8.0\tThis is a test").
+*/
+
+public class WritableMultipleValuesReducer extends
+    Reducer&lt;Text, MultipleWritable, Text, MultipleWritable&gt; {
+
+MultipleWritable mw = new MultipleWritable();
+
+@Override
+public void reduce(Text key, Iterable&lt;MultipleWritable&gt; values,
+        Context context) throws IOException, InterruptedException {
+
+    for (MultipleWritable value : values) {
+
+        mw.setIntField(value.getIntField() * 2);
+        mw.setFloatField(value.getFloatField() * 2);
+        mw.setStringField(value.getStringField());
+
+        context.write(key, mw);
+    }
+}
+}
 </code></pre>
 
-<p><em>Note: Remember to replace 'username' with your real user name</em></p>
+<h2>The Driver</h2>
 
-<p>Replace the pom.xml file (under the directory SEIS736) with this one</p>
+<pre><code>package edu.stthomas.gps.multiplevalues;
 
-<p><a href="https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopMaven/pom.xml">pom.xml</a></p>
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
-<p><code>
-$ mvn eclipse:clean eclipse:eclipse
-</code></p>
+public class WritableMultipleValues extends Configured implements Tool {
 
-<h3>Set up M2_REPO environment variable</h3>
+public int run(String[] args) throws Exception {
 
-<p><em>Note: This step is not needed on a Mac.</em></p>
+    Job job = new Job(getConf());
+    job.setJarByClass(WritableMultipleValues.class);
+    job.setJobName("Writable Multiple Values");
 
-<p>Go to your home directory</p>
+    FileInputFormat.setInputPaths(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-<p><code>
-$ cd ~
-</code></p>
+    job.setMapperClass(WritableMultipleValuesMapper.class);
+    job.setReducerClass(WritableMultipleValuesReducer.class);
 
-<p>Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.</p>
+    job.setNumReduceTasks(1);
 
-<p><code>
-export M2_REPO=$HOME/.m2/repository
-</code></p>
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(MultipleWritable.class);
 
-<p>Enter the following command</p>
+    return (job.waitForCompletion(true) ? 0 : 1);
+}
 
-<p><code>
-$ source .bashrc
-</code></p>
-
-<h3>Import project into Eclipse</h3>
-
-<p>Start eclipse, and select
-File->Import->Existing Projects Into Workspace</p>
-
-<p><img src="images/1.jpg" alt="Import Existing Projects" /></p>
-
-<p>Choose SEIS736 and import it into Eclipse</p>
-
-<p><img src="images/2.jpg" alt="Import" /></p>
-
-<p>You can now add source file to SEIS736->src/main/java->edu.stthomas.edu and all the Hadoop references should resolve.</p>
-
-<h3>Add javadoc for Hadoop</h3>
-
-<p><em>Note: This manual step is currently necessary because Cloudera is missing the Javadoc JAR for hadoop-core.</em></p>
-
-<p>Go to File->Properties, select M2_REPO/org/apache/hadoop/hadoop-core/2.0.0-mr1-cdh4.4.0/hadoop-core-2.0.0-mr1-cdh4.4.0.jar</p>
-
-<p><img src="images/3.jpg" alt="Build Path" /></p>
-
-<p>Double click Javadoc location</p>
-
-<p><img src="images/4.jpg" alt="Javadoc Location" /></p>
-
-<p>Enter http://archive.cloudera.com/cdh4/cdh/4/hadoop/api/ into Javadoc location path, then click OK.</p>
-
-<h3>Compile the project</h3>
-
-<p>Under your project directory SEIS736, enter the following command</p>
-
-<p><code>
-$ mvn package
-</code></p>
-
-<p>Then in Eclipse, right click SEIS736 and select Refresh. Then you will see a jar file called  SEIS736-1.0.jar generated under target directory.</p>
-
-<h3>Upload jar file to the server</h3>
-
-<p>Under SEIS736, create a shell script called upload.sh with the following two lines of code</p>
-
-<pre><code>#!/bin/sh
-scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \
-username@hc.gps.stthomas.edu:/home/username/
+public static void main(String[] args) throws Exception {
+    int exitCode = ToolRunner.run(new WritableMultipleValues(), args);
+    System.exit(exitCode);
+}
+}
 </code></pre>
 
-<p>Then enter the following command</p>
-
-<p><code>
-$ mvn install
-</code></p>
-
-<h4>Reference</h4>
-
-<p><a href="http://blog.cloudera.com/blog/2012/08/developing-cdh-applications-with-maven-and-eclipse/">Developing CDH Applications with Maven and Eclipse</a></p>
+<p><a href="https://github.com/CoE4BD/HadoopHowTo/blob/master/writableMultipleValues/">You can get the three Java source files here</a></p>
 </body>
 </html>
