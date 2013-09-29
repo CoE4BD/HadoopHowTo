@@ -7,9 +7,13 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-/* An example of how to pass multiple values from a mapper to a reducer in a single string value via string concatenation.
- Input is a comma-separated string, interpreted as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
- Output is Key:string Value:string, and the value contains the int and float doubled (i.e. Key:"A" Value: "2,4.0,This is a test").
+/**
+ * An example of how to pass multiple values from a mapper to a reducer in a
+ * single string value via string concatenation. Input is a comma-separated
+ * string, interpreted as Key:string Value:integer, float, string (i.e.
+ * "A,1,2.0,This is a test"). Output is Key:string Value:string, and the value
+ * contains the integer and float doubled (i.e. Key:"A" Value:
+ * "2,4.0,This is a test").
  */
 
 public class StringMultipleValuesMapper extends

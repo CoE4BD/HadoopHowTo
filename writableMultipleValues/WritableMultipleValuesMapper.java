@@ -5,11 +5,15 @@ import java.io.IOException;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-/* An example of how to pass multiple values from a mapper to a reducer in a single custom writable value.
-Input is a comma-separated string, interpreted as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
-Output is Key:string Value: MultipleWritable(integer, float, string), which contains the integer and float doubled
-(i.e. Key:"A" Value: 2 4.0 This is a test).
-*/
+
+/**
+ * An example of how to pass multiple values from a mapper to a reducer in a
+ * single custom writable value. Input is a comma-separated string, interpreted
+ * as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
+ * Output is Key:string Value: MultipleWritable(integer, float, string), which
+ * contains the integer and float doubled (i.e. Key:"A" Value: 2 4.0 This is a
+ * test).
+ */
 
 public class WritableMultipleValuesMapper extends
 		Mapper<LongWritable, Text, Text, MultipleWritable> {
