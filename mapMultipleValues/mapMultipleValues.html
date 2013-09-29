@@ -302,133 +302,37 @@ sup {
 	}
 }
 </style>
-<title>Passing Multiple Values in MapReduce Part 2: Custom Writables</title>
+<title>Passing Multiple Values in MapReduce Part 1: Maps</title>
 
 </head>
 <body>
-<h1>Passing Multiple Values in MapReduce Part 2: Custom Writables</h1>
+<h1>Passing Multiple Values in MapReduce Part 1: Maps</h1>
 
 <p>Bradley S. Rubin, PhD 9/27/2013</p>
 
-<h3>This part shows how to use a custom Writable to pass multiple values between mapper and reducer, and from the reducer to output</h3>
+<h3>This part shows how to use a MapWritable to pass multiple values between mapper and reducer, and from the reducer to output</h3>
 
 <hr />
 
-<p>In this 2nd of the 4-part series, I will show how to use a single class, which can contain muliple attributes, to pass multiple values.  This is much more efficient than the previous string-based technique, both in terms of storage size and in development time, also avoiding type conversions.</p>
+<p>In the code for this part, we place the multiple values into a MapWritable object, which can be passed between the mapper and reducer, and also output from the reducer.  MapWritable consumes some memory.  It requires a new itself, and a new for every key and value within the map.  In this example, and IntWritable is used for the map key.</p>
 
-<p>In the code for this part, we create a separate class that implements the Writable interface and contains, as its attributes, the multiple values and their types.  We then use this writable just like any of the other builtin types.  The toString() method controls how the multiple values appear in the HDFS text file.</p>
-
-<p>Two notes:</p>
-
-<ol>
-<li>It is important to implement the empty default constructor.</li>
-<li>If you want to use a custom writable in the MRUnit test framework, you must also implement hashCode() and equals() (let Eclipse generate the code for you).</li>
-</ol>
-
-
-<h2>The Custom Writable</h2>
-
-<pre><code>public MultipleWritable() {
-}
-
-public MultipleWritable(int i, float f, String s) {
-    intField = i;
-    floatField = f;
-    stringField = s;
-}
-
-public int getIntField() {
-    return intField;
-}
-
-public void setIntField(int intField) {
-    this.intField = intField;
-}
-
-public float getFloatField() {
-    return floatField;
-}
-
-public void setFloatField(float floatField) {
-    this.floatField = floatField;
-}
-
-public String getStringField() {
-    return stringField;
-}
-
-public void setStringField(String stringField) {
-    this.stringField = stringField;
-}
-
-public void readFields(DataInput in) throws IOException {
-    intField = in.readInt();
-    floatField = in.readFloat();
-    stringField = in.readUTF();
-}
-
-public void write(DataOutput out) throws IOException {
-    out.writeInt(intField);
-    out.writeFloat(floatField);
-    out.writeUTF(stringField);
-}
-
-@Override
-public String toString() {
-    return intField + "\t" + floatField + "\t" + stringField;
-}
-
-@Override
-public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + intField;
-    result = prime * result + Float.floatToIntBits(floatField);
-    result = prime * result
-            + ((stringField == null) ? 0 : stringField.hashCode());
-    return result;
-}
-
-@Override
-public boolean equals(Object obj) {
-    if (this == obj)
-        return true;
-    if (obj == null)
-        return false;
-    if (getClass() != obj.getClass())
-        return false;
-    MultipleWritable other = (MultipleWritable) obj;
-    if (intField != other.intField)
-        return false;
-    if (Float.floatToIntBits(floatField) != Float
-            .floatToIntBits(other.floatField))
-        return false;
-    if (stringField == null) {
-        if (other.stringField != null)
-            return false;
-    } else if (!stringField.equals(other.stringField))
-        return false;
-    return true;
-}
-}
-</code></pre>
+<p>MapWritable doesn't implement toString(), so it won't display nicely when using hadoop fs -cat on the text file output.  Also, it isn't compatible with Hive and Pig, but it can be consumed by a subsequent mapper.  Finally, althought it can be used with MRUnit, the test framework complains because it too best works with classes with toString() to help debug test mismatches.  Perhaps it would be good to subclass MapWritable and add a custom toString() method.</p>
 
 <h2>The Mapper</h2>
 
 <pre><code>/**
 * An example of how to pass multiple values from a mapper to a reducer in a
-* single custom writable value. Input is a comma-separated string, interpreted
-* as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
-* Output is Key:string Value: MultipleWritable(integer, float, string), which
-* contains the integer and float doubled (i.e. Key:"A" Value: 2 4.0 This is a
-* test).
+* MapWritable with three entries (IntWritable, FloatWritable, and Text). Note
+* that the map's key must be a Writable too. The output is Key:string
+* Value:MapWritable and the integer and float are doubled (i.e. Key:"A"
+* Value:Map(1:2,2:4.0,3:"This is a test").
 */
 
-public class WritableMultipleValuesMapper extends
-    Mapper&lt;LongWritable, Text, Text, MultipleWritable&gt; {
+public class MapMultipleValuesMapper extends
+    Mapper&lt;LongWritable, Text, Text, MapWritable&gt; {
 
 Text textKey = new Text();
-MultipleWritable mw = new MultipleWritable();
+MapWritable mw = new MapWritable();
 
 @Override
 public void map(LongWritable key, Text value, Context context)
@@ -437,10 +341,11 @@ public void map(LongWritable key, Text value, Context context)
     String line = value.toString();
     String[] field = line.split(",");
     if (field.length == 4) {
-        mw.setIntField(Integer.parseInt(field[1]) * 2);
-        mw.setFloatField(Float.parseFloat(field[2]) * 2);
-        mw.setStringField(field[3]);
-
+        mw.put(new IntWritable(1),
+                new IntWritable(Integer.parseInt(field[1]) * 2));
+        mw.put(new IntWritable(2),
+                new FloatWritable(Float.parseFloat(field[2]) * 2));
+        mw.put(new IntWritable(3), new Text(field[3]));
         textKey.set(field[0]);
 
         context.write(textKey, mw);
@@ -452,29 +357,31 @@ public void map(LongWritable key, Text value, Context context)
 <h2>The Reducer</h2>
 
 <pre><code>/**
-* An example of how to output multiple values from a reducer in a custom
-* writable. Input is a Key:string Value:MultipleWritable(integer, float,
-* string) (i.e. Key:"A" Value: MultipleWritable(2 4.0 This is a test). Output
-* is Key:string Value:MultipleWritable(integer, float, string) and the value
-* contains the integer and float doubled in tab separated format in order to
-* make future Hive/Pig import easier because keys and values are also separated
-* by tabs. (i.e. Key:"A" Value: "4\t8.0\tThis is a test").
+* An example of how to output multiple values from a reducer in MapWritable.
+* Input is Key:string Value:MapWritable (i.e. Key:"A"
+* Value:Map(1:2,2:4.0,3:"This is a test"). The Output is the same, with the
+* integer and float doubled. Note that there is no toString() method in
+* MapWritable, so the values are not viewable in the output text file.
 */
 
-public class WritableMultipleValuesReducer extends
-    Reducer&lt;Text, MultipleWritable, Text, MultipleWritable&gt; {
+public class MapMultipleValuesReducer extends
+    Reducer&lt;Text, MapWritable, Text, MapWritable&gt; {
 
-MultipleWritable mw = new MultipleWritable();
+MapWritable mw = new MapWritable();
 
 @Override
-public void reduce(Text key, Iterable&lt;MultipleWritable&gt; values,
-        Context context) throws IOException, InterruptedException {
+public void reduce(Text key, Iterable&lt;MapWritable&gt; values, Context context)
+        throws IOException, InterruptedException {
 
-    for (MultipleWritable value : values) {
+    for (MapWritable value : values) {
 
-        mw.setIntField(value.getIntField() * 2);
-        mw.setFloatField(value.getFloatField() * 2);
-        mw.setStringField(value.getStringField());
+        int i = ((IntWritable) value.get(new IntWritable(1))).get();
+        float f = ((FloatWritable) value.get(new IntWritable(2))).get();
+        String s = ((Text) value.get(new IntWritable(3))).toString();
+
+        mw.put(new IntWritable(1), new IntWritable(i * 2));
+        mw.put(new IntWritable(2), new FloatWritable(f * 2));
+        mw.put(new IntWritable(3), new Text(s));
 
         context.write(key, mw);
     }
@@ -484,46 +391,35 @@ public void reduce(Text key, Iterable&lt;MultipleWritable&gt; values,
 
 <h2>The Driver</h2>
 
-<pre><code>package edu.stthomas.gps.multiplevalues;
-
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
-
-public class WritableMultipleValues extends Configured implements Tool {
+<pre><code>public class MapMultipleValues extends Configured implements Tool {
 
 public int run(String[] args) throws Exception {
 
     Job job = new Job(getConf());
-    job.setJarByClass(WritableMultipleValues.class);
-    job.setJobName("Writable Multiple Values");
+    job.setJarByClass(MapMultipleValues.class);
+    job.setJobName("Map Multiple Values");
 
     FileInputFormat.setInputPaths(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-    job.setMapperClass(WritableMultipleValuesMapper.class);
-    job.setReducerClass(WritableMultipleValuesReducer.class);
+    job.setMapperClass(MapMultipleValuesMapper.class);
+    job.setReducerClass(MapMultipleValuesReducer.class);
 
     job.setNumReduceTasks(1);
 
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(MultipleWritable.class);
+    job.setOutputValueClass(MapWritable.class);
 
     return (job.waitForCompletion(true) ? 0 : 1);
 }
 
 public static void main(String[] args) throws Exception {
-    int exitCode = ToolRunner.run(new WritableMultipleValues(), args);
+    int exitCode = ToolRunner.run(new MapMultipleValues(), args);
     System.exit(exitCode);
 }
 }
 </code></pre>
 
-<p><a href="https://github.com/CoE4BD/HadoopHowTo/blob/master/writableMultipleValues/">You can get the four Java source files here</a></p>
+<p><a href="https://github.com/CoE4BD/HadoopHowTo/blob/master/mapMultipleValues/">You can get the three Java source files here</a></p>
 </body>
 </html>

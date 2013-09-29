@@ -15,20 +15,6 @@ Two notes:
 
 ## The Custom Writable
 
-	package edu.stthomas.gps.multiplevalues;
-
-	import java.io.DataInput;
-	import java.io.DataOutput;
-	import java.io.IOException;
-
-	import org.apache.hadoop.io.Writable;
-
-	public class MultipleWritable implements Writable {
-	
-	private int intField;
-	private float floatField;
-	private String stringField;
-
 	public MultipleWritable() {
 	}
 
@@ -114,18 +100,13 @@ Two notes:
 	}
 
 ## The Mapper
-	package edu.stthomas.gps.multiplevalues;
-
-	import java.io.IOException;
-
-	import org.apache.hadoop.io.LongWritable;
-	import org.apache.hadoop.io.Text;
-	import org.apache.hadoop.mapreduce.Mapper;
-
-	/* An example of how to pass multiple values from a 	mapper to a reducer in a single custom writable value.
-	Input is a comma-separated string, interpreted as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
-	Output is Key:string Value: MultipleWritable(integer, float, string), which contains the integer and float doubled
-	(i.e. Key:"A" Value: 2 4.0 This is a test).
+	/**
+	* An example of how to pass multiple values from a mapper to a reducer in a
+	* single custom writable value. Input is a comma-separated string, interpreted
+	* as Key:string Value:integer, float, string (i.e. "A,1,2.0,This is a test").
+	* Output is Key:string Value: MultipleWritable(integer, float, string), which
+	* contains the integer and float doubled (i.e. Key:"A" Value: 2 4.0 This is a
+	* test).
 	*/
 
 	public class WritableMultipleValuesMapper extends
@@ -152,21 +133,16 @@ Two notes:
 	}
 	}
 
-
 ## The Reducer
-	package edu.stthomas.gps.multiplevalues;
 
-	import java.io.IOException;
-
-	import org.apache.hadoop.io.Text;
-	import org.apache.hadoop.mapreduce.Reducer;
-
-	/* An example of how to output multiple values from a reducer in a custom writable.
-	Input is a Key:string Value:MultipleWritable(integer, float, string)
-	(i.e. Key:"A" Value: MultipleWritable(2 4.0 This is a test).  Output is
-	Key:string Value:MultipleWritable(integer, float, string) and the value contains
-	the integer and float doubled in tab separated format in order to make future Hive/Pig import easier because
-	keys and values are also separated by tabs. (i.e. Key:"A" Value: "4\t8.0\tThis is a test").
+	/**
+	* An example of how to output multiple values from a reducer in a custom
+	* writable. Input is a Key:string Value:MultipleWritable(integer, float,
+	* string) (i.e. Key:"A" Value: MultipleWritable(2 4.0 This is a test). Output
+	* is Key:string Value:MultipleWritable(integer, float, string) and the value
+	* contains the integer and float doubled in tab separated format in order to
+	* make future Hive/Pig import easier because keys and values are also separated
+	* by tabs. (i.e. Key:"A" Value: "4\t8.0\tThis is a test").
 	*/
 
 	public class WritableMultipleValuesReducer extends
@@ -230,7 +206,7 @@ Two notes:
 	}
 	}
 	
-[You can get the three Java source files here](https://github.com/CoE4BD/HadoopHowTo/blob/master/writableMultipleValues/)
+[You can get the four Java source files here](https://github.com/CoE4BD/HadoopHowTo/blob/master/writableMultipleValues/)
 
 
 
