@@ -1,6 +1,7 @@
 # Passing Multiple Values in MapReduce Part 2: Custom Writables
 
-Bradley S. Rubin, PhD 9/27/2013
+Brad Rubin  
+9/27/2013
 
 ### This part shows how to use a custom Writable to pass multiple values between mapper and reducer, and from the reducer to output
 ---

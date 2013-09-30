@@ -1,8 +1,9 @@
 # Setup Eclipse for Hadoop Development Using Maven
 
-For Ubuntu and Mac Users
+Shuo Yang & Brad Rubin  
+9/17/2013
 
-Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
+#####For Ubuntu and OS X Users
 
 ### Using the software lifecycle and build tool Maven, you can configure Eclipse for Hadoop development in minutes.
 ---
@@ -10,7 +11,7 @@ Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 
 ### Install MavenFirst, open a shell terminal and check if Maven version 3 is already installed. 
 `$ mvn -v`
-*Note for Mac Users: If you install XCode, Maven 3 should be installed for you*
+*Note for OS X Users: If you install XCode, Maven 3 should be installed for you*
 If it is not installed, enter the following command to install (make sure you have access to the Internet)
 `$ sudo apt-get install maven`After it is completely done, type in 'mvn -v' again, you might see the following information
 	Apache Maven 3.0.4 	Maven home: /usr/share/maven 	Java version: 1.6.0_27, vendor: Sun Microsystems Inc. 	Java home: /usr/lib/jvm/java-6-openjdk-amd64/jre 	Default locale: en_US, platform encoding: UTF-8 	OS name: "linux", version: "3.8.0-30-generic", arch: "amd64", family: "unix" ### Install EclipseTo install Eclipse, enter the following command (make sure you have access to the Internet)
@@ -25,7 +26,7 @@ Shuo Yang, Bradley S. Rubin, PhD 9/17/2013
 	eclipse:configure-workspace eclipse:eclipse
 *Note: Remember to replace 'username' with your real user name*Replace the pom.xml file (under the directory SEIS736) with this one
 [pom.xml](https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopMaven/pom.xml)
-`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variable*Note: This step is not needed on a Mac.*
+`$ mvn eclipse:clean eclipse:eclipse`### Set up M2_REPO environment variable*Note: This step is not needed on OS X.*
 Go to your home directory
 `$ cd ~`
 Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.

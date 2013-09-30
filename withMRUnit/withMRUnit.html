@@ -302,171 +302,83 @@ sup {
 	}
 }
 </style>
-<title>Setup Eclipse for Hadoop Development Using Maven</title>
+<title>MRUnit: with vs. add</title>
 
 </head>
 <body>
-<h1>Setup Eclipse for Hadoop Development Using Maven</h1>
+<h1>MRUnit: with vs. add</h1>
 
-<p>Shuo Yang &amp; Brad Rubin<br/>
-9/17/2013</p>
+<p>Brad Rubin<br/>
+9/30/2013</p>
 
-<h5>For Ubuntu and OS X Users</h5>
-
-<h3>Using the software lifecycle and build tool Maven, you can configure Eclipse for Hadoop development in minutes.</h3>
+<h3>MRUnit supports two diffent input/output methods, add and with.  Here is the difference.</h3>
 
 <hr />
 
-<p><em>Note: This document assumes a package name of edu.stthomas.gps and a project name of SEIS736, so change these to meet your requirements</em></p>
+<p>MRUnit has two forms of input and output methods, withInput()/addInput() and withOutput()/addOutput().  At first glance, both apear do do the same thing.  However, the with methods allow a programming style called a <em>fluent interface</em>, which in Java means that the method call returns self and the methods can be chained together.  Here, we illustrate a mapper test with both programming styles.  Both function the same, so this is a matter of style.</p>
 
-<h3>Install Maven</h3>
+<p>See this blog post for more information on the <a href="http://martinfowler.com/bliki/FluentInterface.html">fluent interface</a>.</p>
 
-<p>First, open a shell terminal and check if Maven version 3 is already installed.</p>
+<h2>add</h2>
 
-<p><code>
-$ mvn -v
-</code></p>
+<pre><code>@Test
+public void testMapper() throws IOException {
 
-<p><em>Note for OS X Users: If you install XCode, Maven 3 should be installed for you</em></p>
-
-<p>If it is not installed, enter the following command to install (make sure you have access to the Internet)</p>
-
-<p><code>
-$ sudo apt-get install maven
-</code></p>
-
-<p>After it is completely done, type in 'mvn -v' again, you might see the following information</p>
-
-<pre><code>Apache Maven 3.0.4 
-Maven home: /usr/share/maven 
-Java version: 1.6.0_27, vendor: Sun Microsystems Inc. 
-Java home: /usr/lib/jvm/java-6-openjdk-amd64/jre 
-Default locale: en_US, platform encoding: UTF-8 
-OS name: "linux", version: "3.8.0-30-generic", arch: "amd64", family: "unix" 
+    mapDriver.addInput(
+                    new LongWritable(1),
+                    new Text( "NYSE,ZTR,1.0"));
+    mapDriver.addInput(
+                    new LongWritable(1),
+                    new Text("NYSE,ZTR,2.0"));
+    mapDriver.addInput(
+                    new LongWritable(1),
+                    new Text("NYSE,AAA,3.0"));
+    mapDriver.addInput(
+                    new LongWritable(1),
+                    new Text("Dirty Data"));
+    mapDriver.addOutput(
+                    new Text("ZTR"),
+                    new FloatWritable((float)1.0);
+    mapDriver.addOutput(
+                    new Text("ZTR"),
+                    new FloatWritable((float)2.0);
+    mapDriver.addOutput(
+                    new Text("AAA"),
+                    new FloatWritable((float)3.0);
+    mapDriver.runTest();
+}
 </code></pre>
 
-<h3>Install Eclipse</h3>
+<h2>with</h2>
 
-<p>To install Eclipse, enter the following command (make sure you have access to the Internet)</p>
+<pre><code>@Test
+public void testMapper() throws IOException {
 
-<p><code>
-$ sudo apt-get install eclipse
-</code></p>
-
-<h3>Integrate Maven with Eclipse</h3>
-
-<p>Change your working directory to Eclipse's workspace. Assume it is under you home directory.</p>
-
-<p><code>
-$ cd ~/workspace
-</code></p>
-
-<p>Enter the following command</p>
-
-<pre><code>$ mvn archetype:generate -DgroupId=edu.stthomas.gps -DartifactId=SEIS736 \
--DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+    mapDriver
+            .withInput(
+                    new LongWritable(1),
+                    new Text( "NYSE,ZTR,1.0"))
+            .withInput(
+                    new LongWritable(1),
+                    new Text("NYSE,ZTR,2.0"))
+            .withInput(
+                    new LongWritable(1),
+                    new Text("NYSE,AAA,3.0"))
+            .withInput(
+                    new LongWritable(1),
+                    new Text("Dirty Data"));
+    mapDriver
+            .withOutput(
+                    new Text("ZTR"),
+                    new FloatWritable((float)1.0)
+            .withOutput(
+                    new Text("ZTR"),
+                    new FloatWritable((float)2.0)
+            .withOutput(
+                    new Text("AAA"),
+                    new FloatWritable((float)3.0);
+    mapDriver.runTest();
+}
 </code></pre>
-
-<p><em>Note: The backslash at the end of the first line means the command is not complete. We often use it for a long command, so if you want to enter the command on two lines, use it. But if you type the command on one line, you should not type backslash.</em></p>
-
-<p>After it is done, there will be a directory called SEIS736 created under the current directory. Go into this directory</p>
-
-<p><code>
-$ cd SEIS736
-</code></p>
-
-<p>Enter the following command (make sure you have access to the Internet):</p>
-
-<pre><code>$ mvn -Declipse.workspace=/home/username/workspace \
-eclipse:configure-workspace eclipse:eclipse
-</code></pre>
-
-<p><em>Note: Remember to replace 'username' with your real user name</em></p>
-
-<p>Replace the pom.xml file (under the directory SEIS736) with this one</p>
-
-<p><a href="https://github.com/CoE4BD/HadoopHowTo/blob/master/hadoopMaven/pom.xml">pom.xml</a></p>
-
-<p><code>
-$ mvn eclipse:clean eclipse:eclipse
-</code></p>
-
-<h3>Set up M2_REPO environment variable</h3>
-
-<p><em>Note: This step is not needed on OS X.</em></p>
-
-<p>Go to your home directory</p>
-
-<p><code>
-$ cd ~
-</code></p>
-
-<p>Open .bashrc file with a text editor, and add the following line to the end of the file, then save and quit.</p>
-
-<p><code>
-export M2_REPO=$HOME/.m2/repository
-</code></p>
-
-<p>Enter the following command</p>
-
-<p><code>
-$ source .bashrc
-</code></p>
-
-<h3>Import project into Eclipse</h3>
-
-<p>Start eclipse, and select
-File->Import->Existing Projects Into Workspace</p>
-
-<p><img src="images/1.jpg" alt="Import Existing Projects" /></p>
-
-<p>Choose SEIS736 and import it into Eclipse</p>
-
-<p><img src="images/2.jpg" alt="Import" /></p>
-
-<p>You can now add source file to SEIS736->src/main/java->edu.stthomas.edu and all the Hadoop references should resolve.</p>
-
-<h3>Add javadoc for Hadoop</h3>
-
-<p><em>Note: This manual step is currently necessary because Cloudera is missing the Javadoc JAR for hadoop-core.</em></p>
-
-<p>Go to File->Properties, select M2_REPO/org/apache/hadoop/hadoop-core/2.0.0-mr1-cdh4.4.0/hadoop-core-2.0.0-mr1-cdh4.4.0.jar</p>
-
-<p><img src="images/3.jpg" alt="Build Path" /></p>
-
-<p>Double click Javadoc location</p>
-
-<p><img src="images/4.jpg" alt="Javadoc Location" /></p>
-
-<p>Enter http://archive.cloudera.com/cdh4/cdh/4/hadoop/api/ into Javadoc location path, then click OK.</p>
-
-<h3>Compile the project</h3>
-
-<p>Under your project directory SEIS736, enter the following command</p>
-
-<p><code>
-$ mvn package
-</code></p>
-
-<p>Then in Eclipse, right click SEIS736 and select Refresh. Then you will see a jar file called  SEIS736-1.0.jar generated under target directory.</p>
-
-<h3>Upload jar file to the server</h3>
-
-<p>Under SEIS736, create a shell script called upload.sh with the following two lines of code</p>
-
-<pre><code>#!/bin/sh
-scp -r ~/workspace/SEIS736/target/SEIS736-1.0.jar \
-username@hc.gps.stthomas.edu:/home/username/
-</code></pre>
-
-<p>Then enter the following command</p>
-
-<p><code>
-$ mvn install
-</code></p>
-
-<h4>Reference</h4>
-
-<p><a href="http://blog.cloudera.com/blog/2012/08/developing-cdh-applications-with-maven-and-eclipse/">Developing CDH Applications with Maven and Eclipse</a></p>
 </body>
 </html>
