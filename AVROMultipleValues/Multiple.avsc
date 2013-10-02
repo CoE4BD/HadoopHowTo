@@ -1,0 +1,9 @@
+{"namespace": "edu.stthomas.gps.multiplevalues",
+ "type": "record",
+ "name": "Multiple",
+ "fields": [
+     {"name": "intField", "type": "int"},
+     {"name": "floatField",  "type": "float"},
+     {"name": "stringField", "type": "string"}
+ ]
+}
