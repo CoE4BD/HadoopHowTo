@@ -3,11 +3,11 @@
 Brad Rubin  
 10/2/2013
 
-### This part shows how to use AVRO to pass multiple values between mapper and reducer, and from the reducer to output
+### This final part shows how to use AVRO to pass multiple values between mapper and reducer, and from the reducer to output.
 ---
-In this final document of the 4-part series, I will show how to use a single AVRO class, which can contain muliple attributes, to pass multiple values.  This is much more efficient than the previous string-based technique, both in terms of storage size and in development time, also avoiding type conversions.  Since AVRO is self-describing and compatible with non-Java programming languages, it is a more versitile approach than using a Java custom writable.  However, that flexibility comes at the cost of a more complex development path.
+In this final document of the 4-part series, I will show how to use a single AVRO class, which can contain muliple attributes, to pass multiple values.  This is much more efficient than the previously described string-based technique, also avoiding type conversions.  Since AVRO is self-describing and compatible with non-Java programming languages, it is a more versitile approach than using a Java custom writable.  However, that flexibility comes at the cost of a more complex development path.
 
-In the code for this part, we create a separate AVRO class and contains, as its attributes, the multiple values and their types.  We then use this AVRO class just like any of the other builtin types.
+In the code for this part, we create a separate AVRO class that contains, as its attributes, the multiple values and their types.  We then use this AVRO class just like any of the other builtin types.
 
 Development with AVRO starts with a JSON-based schema, describing the contained types.  In this case, we are using an integer, a float, and a string as the three attributes that we want to treat as a single value.
 
@@ -23,7 +23,7 @@ Development with AVRO starts with a JSON-based schema, describing the contained 
 		]
 	}
 	
-This schema is them compiled into a .java file, in this example called Multiple.java.  This is most easily done with a Maven setup.  The Multiple.avsc source is assumed to be in the resources directory, and the output is in the java source directory where the other .java files reside.
+This schema is them compiled into a .java file, in this example it is called Multiple.java.  This is most easily done with a Maven setup.  The Multiple.avsc source is assumed to reside in the resources directory, and the output is in the java source directory where the other .java files reside.
 
 ## Maven pom.xml
 
@@ -153,7 +153,7 @@ After running your MapReduce jobs, you can't view your HDFS output file directly
 
 You can find the avro-tools JAR file [here](http://apache.org/dist/avro/avro-1.7.5/java/).
 
-[You can get the four source files here](https://github.com/CoE4BD/HadoopHowTo/blob/master/AVROMultipleValues/)
+[You can get the four source files here](https://github.com/CoE4BD/HadoopHowTo/blob/master/AVROMultipleValues/).
 
 
 
