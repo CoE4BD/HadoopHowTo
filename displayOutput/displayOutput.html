@@ -326,35 +326,40 @@ hadoop fs -libjars CustomWritable.jar -text output/part-r-00000
 <table>
 <thead>
 <tr>
-<th> </th>
-<th> Standard </th>
-<th> Custom Writable </th>
-<th> AVRO </th>
+<th> Output Format</th>
+<th> Standard Types </th>
+<th> Custom Writable Types </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td> Default </td>
+<td> Text </td>
 <td> hadoop fs -cat  </td>
 <td> hadoop fs -cat </td>
-<td> get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson </td>
 </tr>
 <tr>
-<td> Compressed </td>
+<td> Text Compressed </td>
 <td>hadoop fs -text  </td>
-<td> hadoop fs -text </td>
-<td> get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson </td>
+<td> hadoop fs -text | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson </td>
 </tr>
 <tr>
 <td> SequenceFile </td>
 <td> hadoop fs -text  </td>
-<td> hadoop fs -libjars CustomWritable.jar -text </td>
+<td> hadoop fs -libjars CustomWritable.jar -text | N/A </td>
+</tr>
+<tr>
+<td> SequenceFile Compressed </td>
+<td> hadoop fs -text </td>
+<td> hadoop fs -libjars CustomWritable.jar -text | N/A </td>
+</tr>
+<tr>
+<td> AvroKeyValue </td>
+<td> get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson </td>
 <td> N/A </td>
 </tr>
 <tr>
-<td> Sequence File Compressed </td>
-<td> hadoop fs -text </td>
-<td> hadoop fs -libjars CustomWritable.jar -text </td>
+<td> AvroKeyValue Compressed </td>
+<td> get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson </td>
 <td> N/A </td>
 </tr>
 </tbody>
