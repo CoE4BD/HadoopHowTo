@@ -317,10 +317,10 @@ sup {
 
 <p>MapReduce output to HDFS, at its simplest, consists of a file of key/value text pairs, separated by a tab.  If you use data compression, sequence files, custom Writables, or AVRO types, the commands to display your output can vary.  Here is a chart showing the options.</p>
 
-<p>For example, assume your MapReduce job outputs in SequenceFileOutputFormat, is compressed, and uses a custom Writable type, packaged in CustomWritable.jar.  The output file resides in HDFS in a file named part-r-00000.  The command you would use to display it is</p>
+<p>For example, assume your MapReduce job outputs in SequenceFileOutputFormat, is compressed, and uses a custom Writable type, packaged in CustomWritable.jar.  The output file resides in HDFS in a file named output/part-r-00000.  The command you would use to display it is</p>
 
 <p><code>
-hadoop fs -libjars CustomWritable.jar -text part-r-00000
+hadoop fs -libjars CustomWritable.jar -text output/part-r-00000
 </code></p>
 
 <table>
