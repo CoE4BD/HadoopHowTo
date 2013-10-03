@@ -19,7 +19,7 @@ hadoop fs -libjars CustomWritable.jar -text output/part-r-00000
 | Text Compressed |hadoop fs -text  | hadoop fs -text | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson |
 | SequenceFile | hadoop fs -text  | hadoop fs -libjars CustomWritable.jar -text |
 | SequenceFile Compressed | hadoop fs -text | hadoop fs -libjars CustomWritable.jar -text |
-| AvroKeyValue | N/A | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson |
-| AvroKeyValue Compressed | N/A | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson |
+| AvroKeyValue | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson |
+| AvroKeyValue Compressed | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson | get a local copy of the HDFS file, then: java -jar avro-tools-1.7.5.jar tojson |
 
 You can find the avro-tools JAR file [here](http://apache.org/dist/avro/avro-1.7.5/java/).
