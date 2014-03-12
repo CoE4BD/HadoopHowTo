@@ -46,18 +46,24 @@ The LOG_FILE will show the output of the two MapReduce jobs and any errors encou
     # Definition of the input directory. The shakespeare directory contains multiple text files. 
     INPUT_DIRECTORY="shakespeare"
     COMMON_TEMP="TEMP_DIR"
+    
     # This is the final job output directory.
     FINAL_OUTPUT="JOB_CHAIN_RESULTS"
     
     #Define the two commands to execute the jobs. 
-    JOB_1_CMD="${HADOOP} jar ${MAPREDUCE_JAR_JOB1} ${MAIN_CLASS_JOB1}  \ 
+    JOB_1_CMD="${HADOOP} jar ${MAPREDUCE_JAR_JOB1} ${MAIN_CLASS_JOB1} \
     ${INPUT_DIRECTORY} ${COMMON_TEMP}"
     
     JOB_2_CMD="${HADOOP} jar ${MAPREDUCE_JAR_JOB2} ${MAIN_CLASS_JOB2} \
     ${COMMON_TEMP} ${FINAL_OUTPUT}"
+    
     # Define the command to cat the output of the directory.
     CAT_FINAL_OUTPUT_CMD="${HADOOP} fs -cat ${FINAL_OUTPUT}/part-*"
+    
+    # Define the cleanup command
     CLEANUP_CMD="${HADOOP} fs -rm -r ${COMMON_TEMP} ${FINAL_OUTPUT}"
+    
+    # Define the log file
     LOG_FILE="LOG_`date +%s`.txt"
     
     #This command will execute each job and determine status. 
