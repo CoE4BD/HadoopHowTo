@@ -13,7 +13,7 @@ Brad Rubin
 * The input and output files (the 2nd and 3rd command line arguments) are HDFS files.
 * This example as tested on CDH5.0, with Spark 0.9
 
-## ScalaWordCount.java
+## ScalaWordCount.scala
 
     package edu.stthomas.gps.spark;
 
