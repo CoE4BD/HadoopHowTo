@@ -1,6 +1,7 @@
 # Using a browser to tunnel into a Hadoop cluster to inspect worker node logs.
 
-Adnan Al-Alawiyat & Brad Rubin 10/17/2013
+Adnan Al-Alawiyat & Brad Rubin 10/17/2013  
+Updated 9/22/2014 (change from MR1 to MR2 YARN)
 
 ### In order to inspect work node logs in a Hadoop cluster that is behind a firewall with only SSH access, a browser must be setup for tunneling.
 ---
@@ -47,7 +48,7 @@ Our Hadoop cluster is behind a firewall, and only the SSH port (22) is open.  Fu
 
 	![Firefox enable remote DNS][4]
 
-6. In Firefox go to http://hc.gps.stthomas.edu:50030  
+6. In Firefox go to http://hc.gps.stthomas.edu:8088
 
 *Note: After following steps above, Firefox is now dedicated to tunneling, even after a restart.*
  
