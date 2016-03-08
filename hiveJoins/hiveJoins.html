@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Hive Joins in MapReduce</title>
+
+</head>
+<body>
+<h2>Hive Joins in MapReduce</h2>
+
+<p>Lawrence Kyei &amp; Brad Rubin<br/>
+2/2/2016</p>
+
+<p>Hive, like any other SQL language, allows users to join tables. However, joins can be computationally expensive, especially on large tables. Throughout the years, many join strategies have been added to Hive, some of which are:</p>
+
+<ul>
+<li>Common (Reduce-side) Join</li>
+<li>Broadcast (Map-side) Join</li>
+<li>Bucket Map Join</li>
+</ul>
+
+
+<p>We illustrate the first and third join type below, using the following input data:</p>
+
+<p>The following commands show the files left and right in the HDFS directory. We will join on the numeric key.</p>
+
+<pre><code>$ hadoop fs -cat /user/brad/input/left/*
+
+1,A
+1,B
+4,A
+2,C
+5,D
+3,A
+3,B
+6,A
+
+$ hadoop fs -cat /user/brad/input/right/*
+
+1,X
+4,Y
+2,X
+5,Y
+5,Z
+3,X
+3,Z
+</code></pre>
+
+<p>Drop Table if they already exist</p>
+
+<pre><code>DROP TABLE left;
+DROP TABLE right; 
+DROP TABLE cleft;
+DROP TABLE cright;
+</code></pre>
+
+<h2>Reduce-side Join Example</h2>
+
+<hr />
+
+<h3>Reduce-side.hql</h3>
+
+<p>Create two external tables called "left" and "right" with the specified columns. The rest of the table CREATE statement indicates the fields from the dataset are separated by commas. The LOCATION shows the HDFS directory where the data is stored.</p>
+
+<pre><code>CREATE EXTERNAL TABLE left (key INT, value STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE 
+LOCATION '/user/brad/input/left';
+
+CREATE EXTERNAL TABLE right (key INT, value STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/brad/input/right';
+</code></pre>
+
+<p>Now we want to make sure the contents of the table were loaded correctly, so we run these commands:</p>
+
+<p><strong>Table left</strong></p>
+
+<pre><code>SELECT * FROM left;
+
+1       A
+1       B
+4       A
+2       C
+5       D
+3       A
+3       B
+6       A
+</code></pre>
+
+<p><strong>Table right</strong></p>
+
+<pre><code>SELECT * FROM right;
+
+1       X
+4       Y
+2       X
+5       Y
+5       Z 
+3       X
+3       Z
+</code></pre>
+
+<p>We then perform the reduce-side join.</p>
+
+<pre><code>SELECT left.key, left.value, right.value 
+FROM left, right 
+WHERE left.key == right.key;
+
+1       A       X
+1       B       X
+4       A       Y
+2       C       X
+5       D       Y
+5       D       Z
+3       A       X
+3       A       Z
+3       B       X
+3       B       Z
+</code></pre>
+
+<h2>Bucket Map Join Example</h2>
+
+<p>Since we want to bucket the data by join keys to allow the join to be processed in parallel, we will have to activate this approach by executing the following commands. For this to happen, the number of buckets in one table must be a multiple of the number of buckets in the other table. This means that the mapper processing the bucket 1 from cleft will only fetch bucket 1 for cright to join. It also sets the number of map tasks to be equal to the number of buckets. In this example, the number of buckets is 3.</p>
+
+<pre><code>SET hive.optimize.bucketmapjoin=true;
+SET hive.enforce.bucketmapjoin=true;
+SET hive.enforce.bucketing=true;
+</code></pre>
+
+<p>Create two tables into 3 buckets for each table, cleft and cright</p>
+
+<pre><code>CREATE TABLE cleft (key INT, value STRING)
+CLUSTERED BY (key)
+SORTED BY (key) INTO 3 BUCKETS;
+
+CREATE TABLE cright (key INT, value STRING)
+CLUSTERED BY (key)
+SORTED BY (key) INTO 3 BUCKETS;
+</code></pre>
+
+<p>Now we populate the table with data from the first two tables, right and left.</p>
+
+<pre><code>INSERT INTO cleft SELECT * from left;
+INSERT INTO cright SELECT * from right;
+</code></pre>
+
+<p>We then perform the join.</p>
+
+<pre><code>SELECT cleft.key, cleft.value, cright.value
+FROM cleft, cright
+WHERE cleft.key == cright.key;
+</code></pre>
+
+<h3>Results</h3>
+
+<p>Since we have 3 reducers, the results are obtained based on the hash key provided by the 3 mappers after sorting and shuffling phase.</p>
+
+<p><strong>First reducer 0</strong></p>
+
+<pre><code>cleft0 cright0
+
+ 6,A    3,Z
+ 3,B    3,X
+ 3,A
+</code></pre>
+
+<p><strong>Second reducer 1</strong></p>
+
+<pre><code>cleft1 cright1
+
+ 4,A    4,Y
+ 1,B    1,X
+ 1,A
+</code></pre>
+
+<p><strong>Third reducer 2</strong></p>
+
+<pre><code>cleft2 cright2
+
+ 5,D    5,Z
+ 2,C    5,Y
+ 2,X
+</code></pre>
+
+<p>So the join result, with all three buckets in parallel (3 mappers) is:</p>
+
+<pre><code>3   B   Z
+3   B   X
+3   A   Z
+3   A   X
+4   A   Y
+1   B   X
+1   A   X
+5   D   Z
+5   D   Y
+2   C   X
+</code></pre>
+</body>
+</html>
