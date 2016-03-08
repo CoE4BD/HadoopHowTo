@@ -1,0 +1,216 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Extending the Spark API</title>
+
+</head>
+<body>
+<h2>Extending the Spark API</h2>
+
+<p>Lawrence Kyei &amp; Brad Rubin<br/>
+2/16/2016</p>
+
+<p>Apache Spark has a lot of convienent built-in APIs that are similar to, but are more general than, the MapReduce APIs. For example, in MapReduce, the Context object gives access to a Counter API for accumulating statistics. This function has a parallel in Spark, called the Accumulator API.</p>
+
+<p>Spark filter is the standard Spark function to filter out bad records. For example, the code below will throw out all records that only have 0 or 1 field.</p>
+
+<pre><code>scala&gt; val lines = sc.textFile("hdfs:///SEIS736/tweets").map(_.split("\t"))
+
+scala&gt; lines.filter(_.length &gt;= 2).take(1)
+
+res2: Array[Array[String]] = Array(Array(DarrenDalrymple, Are you a recent computer science graduate (or similar course) looking to start your career with a global software house? Get in touch ASAP, en, Thu Sep 26 08:25:42 CDT 2013, null))
+</code></pre>
+
+<p>But, in addition to throwing out bad records, it would be useful to keep a count of the bad records. Like counters in Java MapReduce, Spark has accumulators, we can do this.</p>
+
+<pre><code>scala&gt; val badRecords = sc.accumulator(0, "Bad Records")
+
+scala&gt; val lines = sc.textFile("hdfs:///SEIS736/tweets").map(_.split("\t"))
+
+scala&gt; lines.filter(x =&gt; if (x.size &lt; 2) {badRecords += 1; false} else true).count
+res1: Long = 21396
+
+scala&gt; badRecords.value
+res2: Int = 1643
+</code></pre>
+
+<p>From the above code, the accumulator value also shows up in the Spark GUI under the matching Stage. However this code is a little ugly, and in Scala there is a feature called implicits that can make the code cleaner. Implicits provide a way to seamlessly extend closed classes. For example, if one calls a method m on an object o of class C, and that class does not support method m, then Scala will look for an implicit conversion from C to something that does support m.</p>
+
+<p>If we pay the one time price to put in this piece of code that extends the Spark API, with a method defined as clean():</p>
+
+<pre><code>scala&gt; import scala.reflect.ClassTag
+scala&gt; import org.apache.spark.rdd.RDD                               
+scala&gt; import org.apache.spark.Accumulator
+
+ scala&gt; implicit class CustomSparkFunctions[T: ClassTag](rdd: RDD[T]) {
+      |        def clean(f: T =&gt; Boolean, a: Accumulator[Int]): RDD[T] = {
+      |        rdd.filter(x =&gt; if (f(x)) true else {a += 1; false})
+      |        }
+      |     }
+</code></pre>
+
+<p>We get a much cleaner API cleaner interface that looks like it is part of the Spark API. It is also important to note that when running this code in spark-shell, we will have to import the RDD, Accumulator, and ClassTag types as they are not automatically imported.</p>
+
+<pre><code>scala&gt; val badRecords = sc.accumulator(0, "Bad Records")
+
+scala&gt; val lines = sc.textFile("hdfs:///SEIS736/tweets").map(_.split("\t"))
+
+scala&gt; lines.clean(_.size &gt;= 2, badRecords).count
+res1: Long = 21396
+
+scala&gt; badRecords.value
+res2: Int = 1643
+</code></pre>
+</body>
+</html>
