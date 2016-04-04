@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Apache SparkR</title>
+
+</head>
+<body>
+<h2>Apache SparkR</h2>
+
+<p>Lawrence Kyei &amp; Brad Rubin</p>
+
+<p>4/01/2016</p>
+
+<p>R is a language and environment that allows data scientist to be able to perform statistical computing and visualization on a dataset. R provides a wide variety of statistical techniques like linear and nonlinear modelling, time-series analysis, clustering, etc. and is highly extensible. However using R is limited to datasets on a single machine. Apache SparkR enables provides a distributed dataframe implementation that supports operations like selection, filtering, aggregation etc. (similar to R data frames with dplyr) on large datasets.</p>
+
+<p>In this How-To, we  demonstrate how to use SparkR to solve a computation of the maximum daily change for each stock symbol, and output it in sorted stock symbol order, in a single file on the cluster.</p>
+
+<p>First let's start by setting up our environment.</p>
+
+<ul>
+<li>We will have to download Apache Spark from <a href="http://spark.apache.org/downloads.html">here</a> This should look like this
+<img src="DownloadPage.png" alt="" /></li>
+<li>From item 4 in the figure screenshot,  click to download Apache Spark</li>
+<li>Copy <strong>spark-1.0.6-bin-hadoop2.6-tgz</strong> to the cluster and unpackage it there</li>
+<li>Download spark-csv_2.10:1.4.0 from <a href="http://spark-packages.org/package/databricks/spark-csv">here</a> and place it in the directory where you unpackaged spark</li>
+</ul>
+
+
+<p>The .tgz file can be copied to the cluster using WinSCP. After copying .tgz file to the cluster, we can unpackage it with the command</p>
+
+<pre><code>tar -xvzf spark-1.6.1-bin-hadoop2.6.tgz
+</code></pre>
+
+<p>To get SparkR running and accessing HDFS, in the root directory we will run the following commands in the shell to export the necessary libraries and configurations.</p>
+
+<pre><code>$ export JAVA_HOME=/usr/java/jdk1.7.0_67-cloudera
+$ export HADOOP_CONF_DIR=/etc/hadoop/conf
+$ spark-1.6.1-bin-hadoop2.6/bin/sparkR --packages com.databricks:spark-csv_2.10:1.4.0
+</code></pre>
+
+<p>If everything is successful, here is how it looks.
+<img src="ReadySparkR.PNG" alt="" /></p>
+
+<p>Next we will have to take a look at our source data. Open another instance of PuTTY or ssh and enter the following command to view a sample of our dataset.
+<img src="Dataset.PNG" alt="" /></p>
+
+<p>Once we have an idea of what our data looks like, we can go ahead and solve our problem by entering these commands in the SparkR shell:</p>
+
+<pre><code># First, we read in our external datasets from HDFS by creating a dataFrame using CSV format
+input &lt;- read.df(sqlContext, "/SEIS736/NYSE","com.databricks.spark.csv")
+
+# Compute the stock percentage gain
+stkYield &lt;- selectExpr(input, "C1 as Stk", "(C4 - C5) * 100 / (C5 + 0.001) as Yield")
+
+# Group and sort by stock symbol, finding the maxiumum yield
+result &lt;- arrange(summarize(groupBy(stkYield, stkYield$Stk), max(stkYield$Yield)),stkYield$Stk)
+
+# Collapse the result into a single partition so we get a single output file
+resultSingle &lt;- repartition(result, 1L)
+
+# Write the content of the dataFrame to an HDFS directory called test in CSV format
+write.df(resultSingle, "test","com.databricks.spark.csv","overwrite”)
+</code></pre>
+
+<h3>Results</h3>
+
+<p>To get the results we run the command <strong>head resultSingle</strong> to see the first few lines of output.</p>
+
+<pre><code>$ head resultSingle 
+
+   Stk max(Yield)
+1 &lt;NA&gt;         NA
+2   AA   40.82233
+3  AAI   88.82867
+4  AAN   36.31980
+5  AAP   34.19999
+6  AAR   99.96668
+</code></pre>
+</body>
+</html>

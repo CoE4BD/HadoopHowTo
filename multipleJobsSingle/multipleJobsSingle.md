@@ -1,20 +1,18 @@
-## Chaining and Managing Multiple MapReduce Jobs with Two Drivers##
+## Chaining and Managing Multiple MapReduce Jobs with One Driver ##
 
-Lawrence Kyei  
+Lawrence Kyei & Brad Rubin  
 3/22/2016
 
-While a single MapReduce job may be sufficient for certain tasks, there may be instances where 2 or more jobs are needed. 
-
-In this How-To, we look at chaining two MapReduce jobs together to solve a simple WordCount problem. This example uses two drivers, one for each job.
+In this How-To, we look at chaining two MapReduce jobs together to solve a simple WordCount problem with one driver for both jobs.
 
 ### The Two MapReduce Jobs ###
-This is a simple WordCount problem which uses two MapReduce jobs. The first job is a standard WordCount program that outputs the word as the key and the count of the word as the value in the directory **output**. The second MapReduce job swaps key and value so that we get words sorted in descending order by frequency. This second program puts the results in the directory **output2**.
+This is a simple WordCount problem which uses two MapReduce jobs. The first job is a standard WordCount program that outputs the word as the key and the count of the word as the value in the directory **output/temp**. The second MapReduce job swaps key and value so that we get words sorted in descending order by frequency. This spits the results in the directory **output2/final**. Both jobs are executed with a single driver.
 
 The jar file **SEIS736-1.0.jar** consist of;
 
 - 2 Mappers
 - 2 Reducers
-- 2 Drivers 
+- 1 Driver 
 - IntComparator Class
 
 **WordMapper.java**
@@ -70,52 +68,7 @@ The jar file **SEIS736-1.0.jar** consist of;
         context.write(key, intWritable);
       }
     }
-**WordCount.java**
-    
-    package stubs;
 
-    import org.apache.hadoop.conf.Configured;
-    import org.apache.hadoop.fs.Path;
-    import org.apache.hadoop.io.IntWritable;
-    import org.apache.hadoop.io.Text;
-    import org.apache.hadoop.mapreduce.Job;
-    import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-    import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-    import org.apache.hadoop.util.Tool;
-    import org.apache.hadoop.util.ToolRunner;
-
-    public class WordCount extends Configured implements Tool {
-
-    public int run(String[] args) throws Exception {
-	if (args.length != 2) {
-      System.out.printf(
-          "Usage:  Word Count <input dir> <output dir>\n");
-      System.exit(-1);
-     }
-	
-        Job job = new Job(getConf());
-        job.setJarByClass(WordCount.class);
-        job.setJobName("Word Count");
-
-        FileInputFormat.setInputPaths(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-        job.setMapperClass(WordMapper.class);
-        job.setReducerClass(SumReducer.class);
-        job.setCombinerClass(SumReducer.class);
-        //job.setNumReduceTasks(2);
-
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-
-        return (job.waitForCompletion(true) ? 0 : 1);
-      }
-
-    public static void main(String[] args) throws Exception {
-        int exitCode = ToolRunner.run(new WordCount(), args);
-        System.exit(exitCode);
-      }
-    }
 
 **WordMapper2.java**
 
@@ -165,62 +118,100 @@ The jar file **SEIS736-1.0.jar** consist of;
         }
       }
     }
-    
-**WordCount2.java**
+
+**WordCombined.java**
 
     package stubs;
 
-    import org.apache.hadoop.conf.Configured;
+    import org.apache.hadoop.conf.Configuration;
+    import org.apache.hadoop.conf.Configured;	
     import org.apache.hadoop.fs.Path;
     import org.apache.hadoop.io.IntWritable;
     import org.apache.hadoop.io.Text;
+    import org.apache.hadoop.mapreduce.Job;
     import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
     import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
     import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-    import org.apache.hadoop.mapreduce.Job;
     import org.apache.hadoop.util.Tool;
     import org.apache.hadoop.util.ToolRunner;
+    import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
+    import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
+	
+    public class WordCombined extends Configured implements Tool {
+	
+	 public int run(String[] args) throws Exception {
+		
+		JobControl jobControl = new JobControl("jobChain");	
+		Configuration conf1 = getConf();
+		
+		Job job1 = Job.getInstance(conf1);	
+		job1.setJarByClass(WordCombined.class);
+		job1.setJobName("Word Combined");
+		
+		FileInputFormat.setInputPaths(job1, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job1, new Path(args[1] + "/temp"));
 
+		job1.setMapperClass(WordMapper.class);
+		job1.setReducerClass(SumReducer.class);
+		job1.setCombinerClass(SumReducer.class);
+		
+		job1.setOutputKeyClass(Text.class);
+		job1.setOutputValueClass(IntWritable.class);
+	
+		ControlledJob controlledJob1 = new ControlledJob(conf1);
+		controlledJob1.setJob(job1);
+		
+		jobControl.addJob(controlledJob1);
+		Configuration conf2 = getConf();
 
-    public class WordCount2 extends Configured implements Tool {
+		Job job2 = Job.getInstance(conf2);
+		job2.setJarByClass(WordCombined.class);
+		job2.setJobName("Word Invert");
 
-    public int run(String[] args) throws Exception {
-
-    if (args.length != 2) {
-      System.out.printf(
-          "Usage: Words Transposed <input dir> <output dir>\n");
-      System.exit(-1);
-    }
-
-    Job job = new Job(getConf());
-    job.setJarByClass(WordCount2.class);
-    job.setJobName("Words Transposed and sorted");
-
-    FileInputFormat.setInputPaths(job, new Path(args[0]));
-    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-    job.setMapperClass(WordMapper2.class);
-    job.setReducerClass(SumReducer2.class);
-    
-    job.setInputFormatClass(KeyValueTextInputFormat.class);
-    job.setSortComparatorClass(IntComparator.class);
-    //job.setNumReduceTasks(1);
-    
-    job.setMapOutputKeyClass(IntWritable.class);
-    job.setMapOutputValueClass(Text.class);
-    
-    job.setOutputKeyClass(IntWritable.class);
-    job.setOutputValueClass(Text.class);
-
-    return (job.waitForCompletion(true)? 0:1);
-    
-     }
-  
-    public static void main(String[] args) throws Exception{
-	  int exitCode = ToolRunner.run(new WordCount2(), args);
+		FileInputFormat.setInputPaths(job2, new Path(args[1] + "/temp"));
+		FileOutputFormat.setOutputPath(job2, new Path(args[1] + "/final"));
+	
+		job2.setMapperClass(WordMapper2.class);
+		job2.setReducerClass(SumReducer2.class);
+		job2.setCombinerClass(SumReducer2.class);
+	
+		job2.setOutputKeyClass(IntWritable.class);
+		job2.setOutputValueClass(Text.class);
+		job2.setInputFormatClass(KeyValueTextInputFormat.class);
+	
+		job2.setSortComparatorClass(IntComparator.class);
+		ControlledJob controlledJob2 = new ControlledJob(conf2);
+		controlledJob2.setJob(job2);
+	
+		// make job2 dependent on job1
+		controlledJob2.addDependingJob(controlledJob1);	
+		// add the job to the job control
+		jobControl.addJob(controlledJob2);
+		Thread jobControlThread = new Thread(jobControl);
+		jobControlThread.start();
+		
+	while (!jobControl.allFinished()) {
+		System.out.println("Jobs in waiting state: " + jobControl.getWaitingJobList().size());	
+		System.out.println("Jobs in ready state: " + jobControl.getReadyJobsList().size());
+		System.out.println("Jobs in running state: " + jobControl.getRunningJobList().size());
+		System.out.println("Jobs in success state: " + jobControl.getSuccessfulJobList().size());
+		System.out.println("Jobs in failed state: " + jobControl.getFailedJobList().size());
+	try {
+		Thread.sleep(5000);
+		} catch (Exception e) {
+	
+		}
+	
+	  }	
+	   System.exit(0);	
+	   return (job1.waitForCompletion(true) ? 0 : 1);	
+      }	
+	  public static void main(String[] args) throws Exception {	
+	  int exitCode = ToolRunner.run(new WordCombined(), args);	
 	  System.exit(exitCode);
-     }
+	  }
     }
+
 **IntComparator.java**
 
     package stubs;
@@ -243,15 +234,14 @@ The jar file **SEIS736-1.0.jar** consist of;
 	  }
     }
 
-### Running the Code ###
+### Running Code ###
     hadoop fs -rm -r output
-    hadoop fs -rm -r output2
-    hadoop jar SEIS736-1.0.jar stubs.WordCount -D mapred.reduce.tasks=48 shakespeare output
-    hadoop jar SEIS736-1.0.jar stubs.WordCount2 -D mapred.reduce.tasks=1 output output2
-### Results ###
-Let us take a look at the top 10 results in the part-r-00000 file in the directory **output**
+    hadoop jar SEIS736-1.0.jar stubs.WordCount2 -D mapred.reduce.tasks=1 shakespeare output
 
-    $ hadoop fs -cat output2/part-r-00000 | head -10
+### Results ###
+Let us take a look at the top 10 results in the part-r-00000 file in the directory  **output/final**
+
+    $ hadoop fs -cat output/final/part-r-00000 | head -10
     25578	the
     23027	I
     19654	and
@@ -262,5 +252,3 @@ Let us take a look at the top 10 results in the part-r-00000 file in the directo
     11296	my
     10699	in
     8857	is
-
-    
