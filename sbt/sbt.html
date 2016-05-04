@@ -1,0 +1,447 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>sbt (Simple Build Tool)</title>
+
+</head>
+<body>
+<h2>sbt (Simple Build Tool)</h2>
+
+<p>Mohammad Khan &amp; Lawrence Kyei<br/>
+2/29/2016</p>
+
+<p>This tutorial provides a quick path to compile, test and run a Scala application using sbt (simple build tool). sbt is an open source interactive build tool.</p>
+
+<h3>Downloading sbt</h3>
+
+<ul>
+<li>Download the sbt zip file <a href="http://www.scala-sbt.org/download.html">here</a></li>
+<li>Reference the sbt tutorial <a href="http://www.scala-sbt.org/0.13/tutorial/index.html">here</a></li>
+</ul>
+
+
+<h3>Example: Installing sbt manually on Linux</h3>
+
+<p>We will install sbt on UNIX manually. For a larger reference, click <a href="http://www.scala-sbt.org/release/tutorial/Manual-Installation.html">here</a>.</p>
+
+<ul>
+<li>Create a ~/bin directory.</li>
+<li>Move the sbt-launch.jar from ~/Downloads/sbt/bin to ~/bin.</li>
+<li><p>Create a script to run the sbt-launch.jar file, by creating ~/bin/sbt with these contents:</p>
+
+<pre><code>  #!/bin/bash
+  SBT_OPTS="-Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -  XX:MaxPermSize=256M"
+  java $SBT_OPTS -jar `dirname $0`/sbt-launch.jar "$@"
+</code></pre></li>
+<li><p>Make the script executable:</p>
+
+<pre><code>  $ chmod u+x ~/bin
+</code></pre></li>
+<li><p>Open the command line and run sbt</p>
+
+<pre><code>  $ sbt
+</code></pre></li>
+</ul>
+
+
+<p>When you run this sbt prompt shell appears, we can run a test program</p>
+
+<pre><code>&gt; test
+[info] Updating {file:/home/training/bin/}bin...
+[info] Resolving org.fusesource.jansi#jansi;1.4 ...
+[info] Done updating.
+[success] Total time: 3 s, completed Feb 29, 2016 10:06:01 PM
+</code></pre>
+
+<p>At this point your project directory is /home/training/bin.</p>
+
+<h3>sbt Global Plugins</h3>
+
+<p>Create "plugins" directory under ~/.sbt/0.13/. It is important to do this from the command line as the .sbt directory is likely to be hidden after creating it hence preventing you from creating the sub directories.</p>
+
+<p>Open the command line and create the following directories with these commands</p>
+
+<pre><code>$ mkdir .sbt
+$ cd .sbt
+$ mkdir 0.13
+$ cd 0.13
+$ mkdir plugins
+</code></pre>
+
+<h3>Installing Sbteclipse Plugin:</h3>
+
+<p>Under ~/.sbt/0.13/plugins create plugins.sbt if it is not already there. All plugin definitions go in ~/.sbt/0.13/plugins/plugins.sbt. Add this line to plugins.sbt:</p>
+
+<pre><code>addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0")
+</code></pre>
+
+<p>Execute the following commands</p>
+
+<pre><code>$ &gt; plugins.sbt
+$ echo "addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0")" &gt; plugins.sbt
+</code></pre>
+
+<p>We want to make sure plugins.sbt holds the text we want so we do:</p>
+
+<pre><code>$ cat plugins.sbt
+addSbtPlugin(com.typesafe.sbteclipse % sbteclipse-plugin % 2.5.0)
+</code></pre>
+
+<p>Notice we lost our double quotes, we will have to fix it else we get <code>')' expected but double literal found</code> error. This is how to fix it from the command line, navigate into the plugins folder and execute the following commands</p>
+
+<pre><code>vi plugins.sbt
+i       //to get into insert mode where you can edit
+esc     //to escape out of insert mode
+:wq     //to save and quit 
+</code></pre>
+
+<h3>Creating Project Using Sbteclipse</h3>
+
+<p>Under ~/workspace create a directory called "daveWordCount" (daveWordCount is your test project).</p>
+
+<p>build.sbt contains a list of libraries that you need to download for your project.
+Create a file called "build.sbt" under ~/workspace/daveWordCount with the following content:</p>
+
+<pre><code>name := "Dave Word Count"
+version := "1.0"
+//To find scala version in Eclipse IDE:
+//Eclipse &gt; Help &gt; About Scala IDE &gt; Installation Details &gt; Plugins &gt; Type "scala" in search field, look for version in "Scala Compiler"
+//But remember, Apache Spark 1.5.2 works with Scala 2.10 so far, not 2.11. You might have to download Apache Spark 1.6 for Scala 2.10 to work
+scalaVersion := "2.10.6"
+//For individual library dependencies, you can do this:
+//libraryDependencies += "org.apache.spark" %% "spark-core" % "1.0.0"
+//libraryDependencies += "org.apache.spark" %% "spark-sql" % "1.0.0"
+//For multiple library dependencies, and to exclude some of them, you can do this:
+libraryDependencies ++= Seq(
+"org.apache.spark" %% "spark-core" % "1.0.0",
+"org.apache.spark" %% "spark-sql" % "1.0.0" 
+).map(_.exclude("org.slf4j", "slf4j=jdk14"))
+resolvers += "Akka Repository" at "http://repo.akka.io/releases/"
+</code></pre>
+
+<p>-In ~/workspace/daveWordCount folder type "sbt":</p>
+
+<pre><code>$ sbt
+[info] Loading global plugins from /home/training/.sbt/0.13/plugins
+[info] Updating {file:/home/training/.sbt/0.13/plugins/}global-plugins...
+[info] Resolving org.scala-sbt.ivy#ivy;2.3.0-sbt-2cc8d2761242b072cedb0a04cb39435[info] Resolving org.fusesource.jansi#jansi;1.4 ...
+[info] downloading https://repo.typesafe.com/typesafe/ivy-releases/com.typesafe.sbteclipse/sbteclipse-plugin/scala_2.10/sbt_0.13/2.5.0/jars/sbteclipse-plugin.jar ...
+</code></pre>
+
+<p>When this is done, in "sbt interactive shell" prompt type "eclipse". The first time it will take a while to download all eclipse libraries:</p>
+
+<pre><code>&gt; eclipse
+[info] About to create Eclipse project files for your project(s).
+[info] Updating {file:/home/training/workspace/daveWordCount/}davewordcount...
+[info] Resolving org.fusesource.jansi#jansi;1.4 ...
+</code></pre>
+
+<h3>Importing Project into Eclipse</h3>
+
+<ul>
+<li>In Eclipse, right click in the "Package Explorer"</li>
+<li>Click on "Import"</li>
+<li>Choose "General", "Existing Projects into Workspace"</li>
+<li>In "Import" window, select "Select root directory" radio button, and click on "Browse" button.</li>
+<li>Select your newly created folder "daveWordCount", and Click "OK" button.</li>
+<li>Back on "Import" window click "Finish" button.</li>
+<li>In Eclipse, under "Package Explorer", you will now see a folder called "daveWordCount"</li>
+<li>You might notice a red "X" on "daveWordCount". Those are problems</li>
+<li>Go to "Window", "Show View", "Other", type "Problems" in search box and select "Problems" view, it should be under General</li>
+<li>Under "Problems" view expand "Errors", multiple errors will say '... is cross-compiled with an incompatible version of Scala ...'</li>
+</ul>
+
+
+<p>Error '... is cross-compiled with an incompatible version of Scala ...' can be ignored. See explanation below.
+Basically we just downloaded Scala 2.10 libraries, and Eclipse already had the same libraries under 2.11.
+However, Apache Spark 1.5.2 works with Scala 2.10 so far. You might have to download Apache Spark 1.6 for Scala 2.10 to work.
+But don't worry about that, we will build our Scala programs under Scala 2.10 libraries.</p>
+
+<p>Source: <a href="http://scala-ide.org/docs/current-user-doc/faq/index.html">here</a></p>
+
+<p>"Scala IDE complains about ‘... is cross-compiled with an incompatible version of Scala ...’
+The Scala IDE tries to check if binary incompatible Scala libraries have been inadvertently mixed in a project’s classpath.
+It works by extracting, from the name of the jars, which major version of Scala it has been compiled
+against (assuming the Scala convention for publishing cross-compiled libraries, and further assuming that Scala minor releases are binary compatible).
+If the extracted Scala major version doesn’t match the one bundled with the Scala IDE, a problem is reported.
+This ad-hoc validation prevents one of the most common reason for compiler crashes and lack of intelligent behavior in the Scala IDE.</p>
+
+<p>If this check returns a false-negative, it can be disabled at the workspace level, or at the project level.
+The setting is withVersionClasspathValidator in the Scala → Compiler → Build Manager preference section."</p>
+
+<h3>Creating A Scala Object</h3>
+
+<ul>
+<li>In Eclipse, under "Package Explorer", expand "daveWordCount"</li>
+<li>Right click on "src/main/scala-2.10", "New", "Scala Object"</li>
+<li>Name it "daveWordCount", you can call it whatever you want, you don't have to use the same name as folder name. Click on "Finish" button</li>
+<li>A new object called "daveWordCount.scala" will appear under "src/main/scala-2.10". That's your program file.</li>
+</ul>
+
+
+<h3>Writing A WordCount Scala Program</h3>
+
+<p>Copy and paste this code in "daveWordCount" file. This code is a sample from Proferssor Dave Rubin:</p>
+
+<pre><code>import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.rdd.RDD
+
+object daveWordCount {
+
+  var sc: SparkContext = _
+  def setSC(s: SparkContext): Unit = sc = s
+
+  def input(inputFileName: String): RDD[String] = {
+    val sparkConf = new SparkConf().setAppName("Spark WordCount")
+    setSC(new SparkContext(sparkConf))
+    sc.textFile(inputFileName)
+  } 
+
+  def process(rddIn: RDD[String], numTasks: Int): RDD[(String, Int)] = rddIn
+    .flatMap(line =&gt; line.split(" "))
+    .map(word =&gt; (word, 1))
+    .reduceByKey(_ + _, numTasks)
+    .sortByKey(true)
+
+  def output(rdd: RDD[(String, Int)], outputFileName: String): Unit = rdd.saveAsTextFile(outputFileName)
+
+  def main(args: Array[String]) {
+    if (args.length &lt; 3) {
+      println("Usage: daveWordCount &lt;input&gt; &lt;output&gt; &lt;numOutputFiles&gt;");
+      System.exit(1);
+    }
+   val inputArg0: (Unit =&gt; RDD[String]) = Unit =&gt; input(args(0))
+   val processArg2: (RDD[String] =&gt; RDD[(String, Int)]) = process(_,     args(2).toInt)
+   val outputArg1: (RDD[(String, Int)] =&gt; Unit) = output(_, args(1))
+(inputArg0 andThen processArg2 andThen outputArg1)()    
+   System.exit(0)
+ }
+}
+</code></pre>
+
+<h3>Creating Jar File Using sbt Package</h3>
+
+<ul>
+<li>Unlick other Java projects, here you'll be creating a jar file using sbt</li>
+<li><p>Go to your project folder from the command line, "/home/training/workspace/daveWordCount", and type "sbt package".</p>
+
+<pre><code>  $ sbt package
+  [info] Loading global plugins from /home/training/.sbt/0.13/plugins
+  [info] Set current project to Dave Word Count (in build file:/home/training/workspace/daveWorkCount/)
+  [info] Compiling 1 Scala source to /home/training/workspace/daveWorkCount/target/scala-2.10/classes...
+  [info] 'compiler-interface' not yet compiled for Scala 2.10.6. Compiling...
+  [info]   Compilation completed in 47.347 s
+  [info] Packaging /home/training/workspace/daveWorkCount/target/scala-2.10/dave-word-count_2.10-1.0.jar ...
+  [info] Done packaging.
+  [success] Total time: 67 s, completed Mar 1, 2016 5:15:59 PM
+</code></pre></li>
+</ul>
+
+
+<p>The jar file is created in the directory ~/target/scala-2.10 under daveWordCount directory.</p>
+
+<h3>Running Your Spark Scala IDE Built Code With Spark-Submit</h3>
+
+<ul>
+<li><p>Create and store a sample directory, "daveWordCount" and a sample text file under the directory, "daveWordCountText.txt", in hdfs, like so:</p>
+
+<pre><code>  $ hadoop fs -cat daveWordCount/daveWordCountText.txt
+  hello, is it me youre looking for
+</code></pre></li>
+<li><p>Create a directory, "daveWordCountResults" to save results of your program</p></li>
+<li>In Linux, create this script with the following contents:
+/home/training/workspace/daveWordCount/run_daveWordCount.sh</li>
+</ul>
+
+
+<p>This file is saved as /home/training/workspace/daveWordCount/run_daveWordCount.sh:</p>
+
+<pre><code>hdfs dfs -rm -r daveWordCountResults
+spark-submit --class daveWordCount \
+/home/training/workspace/daveWordCount/target/scala-2.10/dave-word-count_2.10-1.0.jar \
+daveWordCount daveWordCountResults 1
+</code></pre>
+
+<ul>
+<li><p>Give execute permissions to user and group on the script</p>
+
+<pre><code>  $ chmod ug+x run_daveWordCount.sh
+</code></pre></li>
+<li><p>Now run the script to execute your scala program</p>
+
+<pre><code>  $ /home/training/workspace/daveWordCount/run_daveWordCount.sh
+</code></pre>
+
+<h3>View The Results Of WordCount Program</h3>
+
+  $ hdfs dfs -cat daveWordCountResults/part-00000
+  (for,1)
+  (hello,,1)
+  (is,1)
+  (it,1)
+  (looking,1)
+  (me,1)
+  (youre,1)
+
+<h3>Updating Third-Party Libraries</h3>
+
+<p>When you need to add/remove/update third-party libraries, change the "build.sbt" file.
+Then in the "sbt interactive shell", run commands "reload" and then "eclipse".
+At last, in Eclipse, right click the project in Package Explorer, and click Refresh from the context menu.</p></li>
+</ul>
+
+</body>
+</html>
