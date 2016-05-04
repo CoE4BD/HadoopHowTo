@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Spark Unit Test</title>
+
+</head>
+<body>
+<h1>Spark Unit Test</h1>
+
+<p>Lawrence Kyei &amp; Brad Rubin<br/>
+4/19/2014</p>
+
+<h3>Here is how to unit test Scala Spark code using Scalatest</h3>
+
+<hr />
+
+<p>In this tutorial we will illustrate how to write a unit test for a Spark application using the classic Scala WordCount example with the Scalatest framework. Writing unit tests in Spark is fairly simple if we adopt the strategy of restructuring our code to separate out the three main phases:</p>
+
+<ul>
+<li>input</li>
+<li>processing</li>
+<li>output</li>
+</ul>
+
+
+<p>We will then use Scalatest in IntelliJ IDEA. This gives an MRUnit-like experience. Below is the WordCount code and its associated unit test code.</p>
+
+<p><strong>SparkWordCount.scala</strong></p>
+
+<pre><code>package edu.stthomas.gps.spark
+
+import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd.RDD.{rddToOrderedRDDFunctions, rddToPairRDDFunctions}
+import org.apache.spark.{SparkConf, SparkContext}
+
+object SparkWordCount {
+
+  var sc: SparkContext = _
+
+  def setSC(s: SparkContext): Unit = sc = s
+
+  def main(args: Array[String]) {
+
+    if (args.length &lt; 3) {
+      println("Usage: SparkWordCount &lt;input&gt; &lt;output&gt; &lt;numOutputFiles&gt;")
+      System.exit(1)
+    }
+
+    val inputArg0: (Unit =&gt; RDD[String]) = Unit =&gt; input(args(0))
+    val processArg2: (RDD[String] =&gt; RDD[(String, Int)]) = process(_, args(2).toInt)
+    val outputArg1: (RDD[(String, Int)] =&gt; Unit) = output(_, args(1))
+
+    (inputArg0 andThen processArg2 andThen outputArg1) ()
+
+    System.exit(0)
+  }
+
+  def input(inputFileName: String): RDD[String] = {
+    val sparkConf = new SparkConf().setAppName("Spark WordCount")
+    setSC(new SparkContext(sparkConf))
+    sc.textFile(inputFileName)
+  }
+
+  def process(rddIn: RDD[String], numTasks: Int): RDD[(String, Int)] = rddIn
+    .flatMap(line =&gt; line.split("\\W+"))
+    .map(word =&gt; (word.toLowerCase, 1))
+    .reduceByKey(_ + _, numPartitions = numTasks)
+    .sortByKey(ascending = true)
+
+  def output(rdd: RDD[(String, Int)], outputFileName: String): Unit = rdd.saveAsTextFile(outputFileName)
+}
+</code></pre>
+
+<p><strong>TestSparkWordCount.scala</strong></p>
+
+<pre><code>package edu.stthomas.gps.spark
+
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+import org.scalatest.{BeforeAndAfter, FunSuite}
+
+class TestSparkWordCount extends FunSuite with BeforeAndAfter {
+
+  var sc: SparkContext = _
+
+  before {
+    val conf = new SparkConf()
+      .setAppName("Test SparkWordCount")
+      .setMaster("local")
+      .set("spark.default.parallelism", "1")
+
+    sc = new SparkContext(conf)
+  }
+
+  test("SparkWordCount Test") {
+
+    val in: RDD[String] = sc.parallelize(Seq("The quick brown fox jumps over the lazy brown dog."))
+    val out: Array[(String, Int)] = Array(("brown", 2), ("dog", 1), ("fox", 1), ("jumps", 1), ("lazy", 1), ("over", 1), ("quick", 1), ("the", 2))
+    SparkWordCount.setSC(sc)
+    assertResult(out)(SparkWordCount.process(in, 1).collect)
+  }
+
+  after {
+    sc.stop()
+  }
+}
+</code></pre>
+
+<p><strong>Results</strong>
+<img src="sparkUnitTestResult.png" alt="" /></p>
+</body>
+</html>
