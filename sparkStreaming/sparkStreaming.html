@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Spark Streaming</title>
+
+</head>
+<body>
+<h1>Spark Streaming</h1>
+
+<p>Lawrence Kyei
+4/26/2016</p>
+
+<p>Spark Streaming is a distributed data stream processing framework. It is a Spark add-on that runs on top of Spark. This uses Spark Core under the hood to process streaming data, providing a scalable, fault-tolerant and high-throughput distributed stream processing platform.</p>
+
+<p>For this example, we will simply demonstrate the streaming interface using data coming from an HDFS file, which isn't a typical use case. Getting streaming data from Twitter, IoT sensors, etc. is a more typical application of this technology.</p>
+
+<h3>High-Level Architecture</h3>
+
+<p>Spark Streaming processes streaming data in micro-batches. It splits streaming data into batches of very small fixed-sized time intervals which are stored as an RDD. RDD operations like transformation and action can be applied to this RDD, which in turn stream out in batches.</p>
+
+<h3>Basic Structure of a Spark Streaming Application</h3>
+
+<hr />
+
+<p>The code below shows an outline of the Spark Streaming application with no processing logic yet. We will add snippets to this skeleton to get a complete working application as we move along.</p>
+
+<pre><code>import org.apache.spark._
+import org.apache.spark.streaming._
+
+object BasicStreamApp{
+    def main(args: Array[String]): Unit ={
+
+        //define the batching interval
+        val interval = args(0).toInt
+
+        //Set the system properties
+        val conf = new SparkConf()
+
+        //Create an instance of the StreamingContext class and specify the batching interval or duration for each RDD
+        val ssc = new StreamingContext(Conf, Seconds(Interval))
+
+        // add your application specific and transformation logic here
+        ...
+        ...
+        ...
+
+        //No processing starts until you call this method
+        ssc.start()
+
+        //waits for the stream computationt to stop
+        ssc.awaitTermination()
+    }
+}
+</code></pre>
+
+<h3>Working Spark Streaming Application</h3>
+
+<p>Now Let's try a simple working Spark Streaming Application. For simplicity this application will stream the word count from an HDFS data source to our Spark REPL.</p>
+
+<p><strong>HDFS Streaming Source</strong></p>
+
+<p>Let's make a directory in HDFS and move a text file into it that contains the words to be streamed and counted.</p>
+
+<pre><code>$hadoop fs -mkdir /user/kyei/stream
+</code></pre>
+
+<p>Now we can move our .txt file from our location to the HDFS location</p>
+
+<pre><code>$hadoop fs -put /home/kyei/wordcount.txt /user/kyei/stream
+</code></pre>
+
+<p>Next we can start the spark-shell</p>
+
+<pre><code>$spark-shell
+</code></pre>
+
+<p>We paste our code</p>
+
+<pre><code>//package edu.stthomas.gps.spark
+
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+
+/**
+* Counts words in text files created in hdfs directory
+* Usage: StreamCount &lt;directory&gt;
+*   &lt;directory&gt; is the directory that Spark Streaming will use to find and  read text files.
+*
+*/
+object StreamCount {
+  def main(args: Array[String]) {
+    if (args.length &lt; 1) {
+      System.err.println("Usage: StreamCount &lt;directory&gt;")
+      System.exit(1)
+    }
+
+    //Stream configuration
+    val sparkConf = new SparkConf().setAppName("StreamCount").setMaster("local[2]").set("spark.driver.allowMultipleContexts", "true")
+    // Create the StreamContext class
+    val ssc = new StreamingContext(sparkConf, Seconds(2))
+
+    // Create the FileInputDStream on the directory and use the
+    // stream to count words in new files created
+    val lines = ssc.textFileStream(args(0))
+    val words = lines.flatMap(_.split(" "))
+    val wordCounts = words.map(x =&gt; (x, 1)).reduceByKey(_ + _)
+    wordCounts.print()
+    ssc.start()
+    ssc.awaitTermination()
+  }
+}
+</code></pre>
+
+<h3>Running and Streaming Data</h3>
+
+<p>To run and have your data streaming in, we run the command</p>
+
+<pre><code>  StreamCount.main(Array("hdfs:///user/kyei/stream/"))
+</code></pre>
+</body>
+</html>
