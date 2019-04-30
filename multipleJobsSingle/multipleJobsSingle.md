@@ -236,7 +236,7 @@ The jar file **SEIS736-1.0.jar** consist of;
 
 ### Running Code ###
     hadoop fs -rm -r output
-    hadoop jar SEIS736-1.0.jar stubs.WordCount2 -D mapred.reduce.tasks=1 shakespeare output
+    hadoop jar SEIS736-1.0.jar stubs.WordCombined -D mapred.reduce.tasks=1 shakespeare output
 
 ### Results ###
 Let us take a look at the top 10 results in the part-r-00000 file in the directory  **output/final**
